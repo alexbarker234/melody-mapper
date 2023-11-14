@@ -20,7 +20,7 @@ export const getAccessToken = async () => {
         }),
         //cache: 'no-store'
         next: {
-            revalidate: 1000
+            revalidate: 60 * 60 * 24
         }
     });
     
