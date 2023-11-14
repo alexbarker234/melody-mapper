@@ -40,9 +40,12 @@
             height: 4rem;
             line-height: 4rem;
             display: flex;
-            border-bottom: 1px white solid;
             cursor: pointer;
             transition: background-color 0.2s;
+
+            &:not(:last-child) {
+                border-bottom: 1px white solid;
+            }
 
             &:hover {
                 background-color: rgba(255,255,255,0.1);

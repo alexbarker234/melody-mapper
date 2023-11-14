@@ -4,13 +4,13 @@ import ForceGraph2D, { ForceGraphMethods, GraphData, LinkObject, NodeObject } fr
 import { forceCenter, forceCollide, forceLink, forceManyBody } from "d3-force";
 
 interface ArtistNodeGraphProps {
-    setSelectedArtist: (artistId: string) => void
+    setSelectedArtist: (artistId: string) => void;
     addArtistData: (data: Artist[]) => void;
     width: number;
     height: number;
 }
 
-export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData, width, height}: ArtistNodeGraphProps) => {
+export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, height }: ArtistNodeGraphProps) => {
     const fgRef = useRef<ForceGraphMethods>();
     const [data, setData] = useState<GraphData>();
     const hoverNode = useRef<string>("");
@@ -27,7 +27,7 @@ export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData, width, heigh
             if (seedNodeResp.status != 200) return console.log("seed error");
             const seedNode: Artist = await seedNodeResp.json();
             artistNodes.push(seedNode);
-            fetchedArtists.current.push(seed)
+            fetchedArtists.current.push(seed);
 
             const relatedNodesResp = await fetch(`/api/artist/related?id=${seed}`);
             if (relatedNodesResp.status != 200) return console.log("related error");
@@ -42,7 +42,7 @@ export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData, width, heigh
             };
 
             setData(gData);
-            addArtistData(artistNodes)
+            addArtistData(artistNodes);
         };
 
         fetchData();
@@ -62,39 +62,20 @@ export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData, width, heigh
         if (relatedNodesResp.status != 200) return console.log("related error");
         const relatedNodes: Artist[] = await relatedNodesResp.json();
 
-        // add in 1 by 1
-        let nextNodeIndex = 0;
-        const addInterval = setInterval(() => {
-            setData((prevData) => {
-                const { nodes, links } = prevData as GraphData;
-                const newNode = relatedNodes[nextNodeIndex];
+        setData((prevData) => {
+            const { nodes, links } = prevData as GraphData;
 
-                const nodeExists = nodes.some((n) => n.id === newNode.id);
-
-                // only add node if it doenst exist
-                const updatedNodes = nodeExists ? [...nodes] : [...nodes, { id: newNode.id, img: newNode.imageURL, label: newNode.name, x: node.x, y: node.y }];
-
-                const updatedLinks = [...links, { source: artistId, target: newNode.id }];
-
-                return { nodes: updatedNodes, links: updatedLinks };
-            });
-
-            nextNodeIndex++;
-
-            if (nextNodeIndex >= relatedNodes.length) {
-                clearInterval(addInterval);
-            }
-        }, 50);
-
-        addArtistData(relatedNodes)
-
-        // setData((prevData) => {
-        //     const { nodes, links } = prevData as GraphData;
-        //     return {
-        //         nodes: [...nodes, ...relatedNodes.map((n) => ({ id: n.id, img: n.imageUrl, label: n.name, x: node.x, y: node.y, }))],
-        //         links: [...links, ...relatedNodes.map((n) => ({ source: artistId, target: n.id }))],
-        //     };
-        // });
+            return {
+                nodes: [
+                    ...nodes,
+                    ...relatedNodes
+                        .filter((newNode) => !nodes.some((n) => n.id === newNode.id))
+                        .map((newNode) => ({ id: newNode.id, img: newNode.imageURL, label: newNode.name, x: node.x, y: node.y })),
+                ],
+                links: [...links, ...relatedNodes.map((n) => ({ source: artistId, target: n.id }))],
+            };
+        });
+        addArtistData(relatedNodes);
     };
 
     const handleClick = (node: NodeObject) => {
@@ -104,8 +85,8 @@ export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData, width, heigh
         const transitionMS = 500;
         // fgRef.current.centerAt(node.x, node.y, transitionMS);
         // fgRef.current.zoom(10, transitionMS);
-        if(!fetchedArtists.current.includes(artistId)) getMoreArtists(node);
-        setSelectedArtist(artistId)
+        if (!fetchedArtists.current.includes(artistId)) getMoreArtists(node);
+        setSelectedArtist(artistId);
     };
     const handleHover = (node: NodeObject | null, previousNode: NodeObject | null) => {
         hoverNode.current = "";
@@ -123,10 +104,11 @@ export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData, width, heigh
                 ref={fgRef}
                 width={width}
                 height={height}
-
+                d3AlphaDecay={0.000228}
+                d3VelocityDecay={0.9}
                 graphData={data}
                 linkColor="#ffffff"
-                linkAutoColorBy={(d) => "#ffffff"} // dude why
+                linkAutoColorBy={(d) => "#ffffff"} // dude why does linkColor not work
                 nodeCanvasObject={(node, ctx, globalScale) => {
                     if (!node.x || !node.y) return;
 
@@ -144,7 +126,7 @@ export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData, width, heigh
                         ctx.fill();
 
                         // Draw text border
-                        ctx.font = `${fontSize}px Sans-Serif`;
+                        ctx.font = `${fontSize}px Roboto`;
                         const textMetrics = ctx.measureText(node.label);
                         let actualHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
 
