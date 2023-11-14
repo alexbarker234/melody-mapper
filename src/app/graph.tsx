@@ -3,36 +3,44 @@ import { useEffect, useRef, useState } from "react";
 import ForceGraph2D, { ForceGraphMethods, GraphData, LinkObject, NodeObject } from "react-force-graph-2d";
 import { forceCenter, forceCollide, forceLink, forceManyBody } from "d3-force";
 
-export const DisplayGraph = () => {
+interface ArtistNodeGraphProps {
+    setSelectedArtist: (artistId: string) => void
+    addArtistData: (data: Artist[]) => void
+}
+
+export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData}: ArtistNodeGraphProps) => {
     const fgRef = useRef<ForceGraphMethods>();
     const [data, setData] = useState<GraphData>();
     const hoverNode = useRef<string>("");
+    const fetchedArtists = useRef<string[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
             console.log("fetching");
             const seed = "2RVvqRBon9NgaGXKfywDSs";
 
-            const artistNodes: ArtistNode[] = [];
+            const artistNodes: Artist[] = [];
 
-            const seedNodeResp = await fetch(`/api/get-artist?id=${seed}`);
+            const seedNodeResp = await fetch(`/api/artist?id=${seed}`);
             if (seedNodeResp.status != 200) return console.log("seed error");
-            const seedNode: ArtistNode = await seedNodeResp.json();
+            const seedNode: Artist = await seedNodeResp.json();
             artistNodes.push(seedNode);
+            fetchedArtists.current.push(seed)
 
-            const relatedNodesResp = await fetch(`/api/related-artists?id=${seed}`);
+            const relatedNodesResp = await fetch(`/api/artist/related?id=${seed}`);
             if (relatedNodesResp.status != 200) return console.log("related error");
-            const relatedNodes: ArtistNode[] = await relatedNodesResp.json();
+            const relatedNodes: Artist[] = await relatedNodesResp.json();
             relatedNodes.forEach((artistNode) => {
                 artistNodes.push(artistNode);
             });
 
             const gData: GraphData = {
-                nodes: artistNodes.map((n) => ({ id: n.id, img: n.imageUrl, label: n.name })),
+                nodes: artistNodes.map((n) => ({ id: n.id, img: n.imageURL, label: n.name })),
                 links: artistNodes.map((n) => ({ source: seedNode.id, target: n.id })),
             };
 
             setData(gData);
+            addArtistData(artistNodes)
         };
 
         fetchData();
@@ -40,6 +48,7 @@ export const DisplayGraph = () => {
         if (fgRef.current) {
             fgRef.current.d3Force("charge", forceManyBody().strength(-10));
             fgRef.current.d3Force("collide", forceCollide(6));
+            fgRef.current.zoom(5);
         }
     }, []);
 
@@ -47,9 +56,9 @@ export const DisplayGraph = () => {
         if (!data) return;
         const artistId = node.id;
 
-        const relatedNodesResp = await fetch(`/api/related-artists?id=${artistId}`);
+        const relatedNodesResp = await fetch(`/api/artist/related?id=${artistId}`);
         if (relatedNodesResp.status != 200) return console.log("related error");
-        const relatedNodes: ArtistNode[] = await relatedNodesResp.json();
+        const relatedNodes: Artist[] = await relatedNodesResp.json();
 
         // add in 1 by 1
         let nextNodeIndex = 0;
@@ -61,7 +70,7 @@ export const DisplayGraph = () => {
                 const nodeExists = nodes.some((n) => n.id === newNode.id);
 
                 // only add node if it doenst exist
-                const updatedNodes = nodeExists ? [...nodes] : [...nodes, { id: newNode.id, img: newNode.imageUrl, label: newNode.name, x: node.x, y: node.y }];
+                const updatedNodes = nodeExists ? [...nodes] : [...nodes, { id: newNode.id, img: newNode.imageURL, label: newNode.name, x: node.x, y: node.y }];
 
                 const updatedLinks = [...links, { source: artistId, target: newNode.id }];
 
@@ -75,6 +84,8 @@ export const DisplayGraph = () => {
             }
         }, 50);
 
+        addArtistData(relatedNodes)
+
         // setData((prevData) => {
         //     const { nodes, links } = prevData as GraphData;
         //     return {
@@ -85,13 +96,14 @@ export const DisplayGraph = () => {
     };
 
     const handleClick = (node: NodeObject) => {
-        if (!node.x || !node.y || !fgRef.current) return;
+        if (!node.id || !node.x || !node.y || !fgRef.current) return;
+        const artistId = node.id as string;
 
         const transitionMS = 500;
         // fgRef.current.centerAt(node.x, node.y, transitionMS);
         // fgRef.current.zoom(10, transitionMS);
-
-        getMoreArtists(node);
+        if(!fetchedArtists.current.includes(artistId)) getMoreArtists(node);
+        setSelectedArtist(artistId)
     };
     const handleHover = (node: NodeObject | null, previousNode: NodeObject | null) => {
         hoverNode.current = "";
@@ -107,6 +119,9 @@ export const DisplayGraph = () => {
         <>
             <ForceGraph2D
                 ref={fgRef}
+                width={window.innerWidth / 2}
+                height={window.innerHeight}
+
                 graphData={data}
                 linkColor="#ffffff"
                 linkAutoColorBy={(d) => "#ffffff"} // dude why

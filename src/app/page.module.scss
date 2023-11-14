@@ -1,0 +1,66 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    .main-section {
+        height: calc(100% - 4rem);
+        position: relative;
+        display: flex;
+    }
+}
+.artist-explorer {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+.side-bar {
+    border-left: 1px white solid;
+    width: 70%;
+    height: 100%;
+    overflow: hidden;
+    overflow-y: scroll;
+    .artist-image {
+        margin: auto;
+        height: 80%;
+        max-height: 250px;
+        width: auto;
+        object-fit: cover;
+        aspect-ratio: 1/1;
+        display: block;
+    }
+    .artist-title {
+        width: fit-content;
+        margin: auto;
+        font-size: 2rem;
+    }
+    .tracks {
+        .track-item {
+            height: 4rem;
+            line-height: 4rem;
+            display: flex;
+            border-bottom: 1px white solid;
+            cursor: pointer;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: rgba(255,255,255,0.1);
+            }
+
+            img {
+                height: 100%;
+                margin-right: 1rem;
+                padding: 0.5rem;
+            }
+            .track-details {
+                width: 100%;
+                a {
+                    display: block;
+                    height: 100%;
+                    width: 100%;
+                }
+            }
+        }
+    }
+}

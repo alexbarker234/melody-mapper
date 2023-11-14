@@ -5,9 +5,9 @@ export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const artistId = searchParams.get("id");
-        if (!artistId) return  NextResponse.json({ error: "no id supplied" }, { status: 400 });;
+        if (!artistId) return NextResponse.json({ error: "no id supplied" }, { status: 400 });
 
-        const artists: ArtistNode[] = [];
+        const artists: Artist[] = [];
 
         const resp = await getRelatedArtists(artistId);
 
@@ -21,7 +21,14 @@ export async function GET(req: Request) {
         const json: SpotifyRelatedArtists = await resp.json();
 
         json.artists.forEach((relatedArist) => {
-            artists.push({id: relatedArist.id, name: relatedArist.name, imageUrl: relatedArist.images[0].url, popularity: relatedArist.popularity});
+            const artist: Artist = {
+                id: relatedArist.id,
+                name: relatedArist.name,
+                imageURL: relatedArist.images[0].url,
+                popularity: relatedArist.popularity,
+                link: relatedArist.external_urls.spotify,
+            };
+            artists.push(artist);
         });
 
         return NextResponse.json(artists);

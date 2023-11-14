@@ -1,0 +1,84 @@
+.player {
+    position: relative;
+    height: 4rem;
+    background-color: #3965a8;
+
+    display: flex;
+
+    img {
+        margin: 0.2rem;
+    }
+
+    .track-details {
+        margin: 0.5rem;
+        .track-name {
+            font-weight: 600;
+        }
+        .artist-name {
+            opacity: 0.8;
+        }
+    }
+
+    .controls {
+        position: absolute;
+        width: 60%;
+        height: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+
+        .buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            button {
+                position: relative;
+                background-color: unset;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                width: 2rem;
+                height: 2rem;
+                transition: opacity 0.1s, scale 0.2s;
+                cursor: pointer;
+
+                svg {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    translate: -50% -50%;
+                }
+
+                &:hover {
+                    scale: 1.1;
+                    opacity: 0.6;
+                }
+                &:active {
+                    scale: 0.9;
+                }
+                &:disabled {
+                    opacity: 0.6;
+                    pointer-events: none;
+                }
+            }
+        }
+        .progress-bar {
+            position: absolute;
+            top: 65%;
+            translate: 0 -50%;
+    
+            background-color: var(--dark-grey);
+    
+            width: 100%;
+            height: 4px;
+            border-radius: 5px;
+            overflow: hidden;
+    
+            .progress-bar-inner {
+                height: 100%;
+                background-color: white;
+            }
+        }
+    }
+}

@@ -1,12 +1,12 @@
-import querystring from 'querystring';
- 
+import querystring from "querystring";
+
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
 const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
- 
-const basic = Buffer.from(`${client_id}:${client_secret}`).toString('base64');
+
+const basic = Buffer.from(`${client_id}:${client_secret}`).toString("base64");
 const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
- 
+
 export const getAccessToken = async () => {
     const response = await fetch(TOKEN_ENDPOINT, {
         method: "POST",
@@ -20,54 +20,35 @@ export const getAccessToken = async () => {
         }),
         //cache: 'no-store'
         next: {
-            revalidate: 60 * 45
-        }
+            revalidate: 60 * 45,
+        },
     });
-    
+
     return response.json();
 };
 
-const TOP_TRACKS_ENDPOINT = `https://api.spotify.com/v1/me/top/tracks`;
- 
-export const getTopTracks = async () => {
-    const { access_token } = await getAccessToken();
+export const getArtist = async (artistId: string, accessToken?: string) => 
+    getFromSpotify(`https://api.spotify.com/v1/artists/${artistId}`, { accessToken });
 
-    return fetch(TOP_TRACKS_ENDPOINT, {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-    });
-};
+export const getArtistTopTracks = async (artistId: string, accessToken?: string) =>
+    getFromSpotify(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=AU`, { accessToken });
+    
+export const getRelatedArtists = async (artistId: string, accessToken?: string) =>
+    getFromSpotify(`https://api.spotify.com/v1/artists/${artistId}/related-artists`, { accessToken });
 
-const getArtistEndpoint = (artistId: string) => `https://api.spotify.com/v1/artists/${artistId}`;
-
-export const getArtist = async (artistId: string, accessToken: string | undefined = undefined) => {
-    if (!accessToken) {
+const getFromSpotify = async (endpoint: string, options?: { revalidate?: number; accessToken?: string }) => {
+    if (!options) options = {};
+    if (!options.revalidate) options.revalidate = 60 * 60 * 24;
+    if (!options.accessToken) {
         const resp = await getAccessToken();
-        accessToken = resp.access_token
+        options.accessToken = resp.access_token;
     }
-    console.log(getArtistEndpoint(artistId))
-    return fetch(getArtistEndpoint(artistId), {
+    console.log(endpoint)
+    console.log(options.accessToken)
+    return fetch(endpoint, {
         headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${options.accessToken}`,
         },
-        next: {
-            revalidate: 60 * 60 * 24
-        }
-    });
-};
-
-const getRelatedArtistsEndpoint = (artistId: string) => `https://api.spotify.com/v1/artists/${artistId}/related-artists`;
-
-export const getRelatedArtists = async (artistId: string, accessToken: string | undefined = undefined) => {
-    if (!accessToken) {
-        const resp = await getAccessToken();
-        accessToken = resp.access_token
-    }
-    console.log(getRelatedArtistsEndpoint(artistId))
-    return fetch(getRelatedArtistsEndpoint(artistId), {
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
+        next: { revalidate: options.revalidate },
     });
 };
