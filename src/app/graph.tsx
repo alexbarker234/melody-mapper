@@ -1,27 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
-import Graph from "graphology";
-import { SigmaContainer, useLoadGraph } from "@react-sigma/core";
-import "@react-sigma/core/lib/react-sigma.min.css";
-import { useWorkerLayoutForceAtlas2 } from "@react-sigma/layout-forceatlas2";
+import { useEffect, useRef, useState } from "react";
+import ForceGraph2D, { ForceGraphMethods, GraphData, NodeObject } from "react-force-graph-2d";
+import { forceCenter, forceCollide, forceManyBody } from "d3-force"
 
-export const LoadGraph = ({ data }: { data: RelatedArtistResponse }) => {
-    const loadGraph = useLoadGraph();
-    const graph = new Graph();
-
-    let test = 0;
-    data.nodes.forEach((artistNode) => {
-        graph.addNode(artistNode.id, { x: Math.random() * 100, y: Math.random() * 100, size: 15, label: artistNode.name, color: "#FA4F40" });
-        test++;
-    });
-    data.edges.forEach((artistEdge) => {
-        graph.addEdge(artistEdge.artistID1, artistEdge.artistID2);
-    });
-    loadGraph(graph);
-    return null;
-};
 export const DisplayGraph = () => {
+    const fgRef = useRef<ForceGraphMethods>();
     const [data, setData] = useState<RelatedArtistResponse>();
+    const hoverNode = useRef<string>("");
+
     useEffect(() => {
         const fetchData = async () => {
             const response: RelatedArtistResponse = await (await fetch(`/api/related-artists`)).json();
@@ -29,33 +15,87 @@ export const DisplayGraph = () => {
         };
 
         fetchData();
+
+        if (fgRef.current) {
+            console.log("updating force")
+            fgRef.current.d3Force('charge', forceManyBody().strength(-10));
+            fgRef.current.d3Force('collide', forceCollide(6));        
+        } 
+
     }, []);
 
-    const Fa2: React.FC = () => {
-        const { start, kill, isRunning } = useWorkerLayoutForceAtlas2({ settings: { slowDown: 10, gravity: 1 } });
-
-        useEffect(() => {
-            // start FA2
-            start();
-            return () => {
-                // Kill FA2 on unmount
-                kill();
-            };
-        }, [start, kill]);
-
-        return null;
+    // translate data
+    const gData: GraphData = {
+        nodes: data?.nodes.map((n) => ({ id: n.id, img: n.imageUrl, label: n.name })) ?? [],
+        links: data?.edges.map((e) => ({ source: e.artistID1, target: e.artistID2 })) ?? [],
     };
+
+    const handleClick = (node: NodeObject) => {
+        if (!node.x || !node.y || !fgRef.current) return;
+
+        const transitionMS = 500;
+        fgRef.current.centerAt(node.x, node.y, transitionMS);
+        fgRef.current.zoom(10, transitionMS)
+    };
+    const handleHover = (node: NodeObject | null, previousNode: NodeObject | null) => {
+        hoverNode.current = "";
+        if (!node || !node.x || !node.y || !fgRef.current) return;
+        hoverNode.current = (node.id ?? "") as string;
+    };
+
+    const nodeSize = 10;
+    const outlineWidth = 2;
+    const fontSize = 5;
 
     return (
         <>
-            {data ? (
-                <SigmaContainer style={{ height: "500px", width: "500px", backgroundColor: "transparent", border: "2px white solid", color: "white" }}>
-                    <LoadGraph data={data} />
-                    <Fa2 />
-                </SigmaContainer>
-            ) : (
-                <div>loading</div>
-            )}
+            <ForceGraph2D
+                ref={fgRef}
+                graphData={gData}
+                linkColor="#ffffff"
+                linkAutoColorBy={d => "#ffffff"} // dude why
+                nodeCanvasObject={(node, ctx, globalScale) => {
+                    if (!node.x || !node.y) return;
+
+                    if (node.id == hoverNode.current) {
+                        // Draw outline
+                        ctx.beginPath();
+                        ctx.roundRect(node.x - nodeSize / 2 - outlineWidth, node.y - nodeSize / 2 -  outlineWidth, nodeSize + outlineWidth * 2, nodeSize + outlineWidth * 2, 2)
+                        ctx.fillStyle = "white";
+                        ctx.fill();
+
+                        // Draw text border
+                        ctx.font = `${fontSize}px Sans-Serif`;
+                        const textMetrics = ctx.measureText(node.label)
+                        let actualHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+
+                        ctx.beginPath();
+                        ctx.roundRect(node.x + nodeSize / 2, node.y - actualHeight / 2 - 2, textMetrics.width + outlineWidth + outlineWidth, actualHeight + 4, 2)
+                        ctx.fillStyle = "white";
+                        ctx.fill();
+
+                        // Draw text
+                        ctx.fillStyle = "black";
+                        ctx.fillText(node.label || "", node.x + nodeSize / 2 + outlineWidth, node.y + actualHeight / 2);
+                    }
+
+
+                    const img = new Image(nodeSize, nodeSize);
+                    img.src = node.img;
+                    ctx.drawImage(img, node.x - nodeSize / 2, node.y - nodeSize / 2, nodeSize, nodeSize);
+                }}
+                nodePointerAreaPaint={(node, color, ctx) => {
+                    if (!node.x || !node.y) return;
+
+                    ctx.fillStyle = color;
+                    ctx.fillRect(node.x - nodeSize / 2, node.y - nodeSize / 2, nodeSize, nodeSize);
+                }}
+                
+                nodeRelSize={nodeSize}
+                onNodeClick={handleClick}
+                onNodeHover={handleHover}
+                warmupTicks={100}
+            />
         </>
     );
 };

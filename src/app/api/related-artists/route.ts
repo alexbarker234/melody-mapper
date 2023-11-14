@@ -26,7 +26,6 @@ export async function GET(req: Request) {
         const already_queued: {[key: string]: boolean} = {}
         const edges: ArtistEdge[] = []
         const nodes: ArtistNode[] = []
-        console.log("test")
     
         const limit = 20;
         var cur = 0;
@@ -46,7 +45,6 @@ export async function GET(req: Request) {
     
             json.artists.forEach((relatedArist) => {
                 if (!already_queued[relatedArist.id]) {
-                    console.log(relatedArist.id, relatedArist.name, relatedArist.images[0].url, relatedArist.popularity)
                     nodes.push({id: relatedArist.id, name: relatedArist.name, imageUrl: relatedArist.images[0].url, popularity: relatedArist.popularity})
                     edges.push({artistID1: artistID, artistID2: relatedArist.id})
                     queue.push(relatedArist.id)
