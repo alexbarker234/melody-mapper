@@ -20,7 +20,7 @@ export const getAccessToken = async () => {
         }),
         //cache: 'no-store'
         next: {
-            revalidate: 60 * 60 * 24
+            revalidate: 60 * 45
         }
     });
     
@@ -39,20 +39,35 @@ export const getTopTracks = async () => {
     });
 };
 
-function getRelatedArtistsEndpoint(artistId: string): string {
-    const RELATED_ARTISTS_ENDPOINT = `https://api.spotify.com/v1/artists/${artistId}/related-artists`;
-    return RELATED_ARTISTS_ENDPOINT;
-}
+const getArtistEndpoint = (artistId: string) => `https://api.spotify.com/v1/artists/${artistId}`;
 
-export const getRelatedArtists = async (artistId: string, access_token: string | undefined = undefined) => {
-    if (!access_token) {
+export const getArtist = async (artistId: string, accessToken: string | undefined = undefined) => {
+    if (!accessToken) {
         const resp = await getAccessToken();
-        access_token = resp.access_token
+        accessToken = resp.access_token
+    }
+    console.log(getArtistEndpoint(artistId))
+    return fetch(getArtistEndpoint(artistId), {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+        next: {
+            revalidate: 60 * 60 * 24
+        }
+    });
+};
+
+const getRelatedArtistsEndpoint = (artistId: string) => `https://api.spotify.com/v1/artists/${artistId}/related-artists`;
+
+export const getRelatedArtists = async (artistId: string, accessToken: string | undefined = undefined) => {
+    if (!accessToken) {
+        const resp = await getAccessToken();
+        accessToken = resp.access_token
     }
     console.log(getRelatedArtistsEndpoint(artistId))
     return fetch(getRelatedArtistsEndpoint(artistId), {
         headers: {
-            Authorization: `Bearer ${access_token}`,
+            Authorization: `Bearer ${accessToken}`,
         },
     });
 };
