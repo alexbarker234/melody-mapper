@@ -1,13 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
+import { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { ArtistNodeGraph } from "./graph";
 import styles from "./page.module.scss";
 import Player from "./player";
 
 export default function Home() {
+    // graph
     const [artistData, setArtistData] = useState<{ [key: string]: Artist }>({});
     const [selectedArtistId, setSelectedArtist] = useState<string>("");
     const [trackList, setTrackList] = useState<Track[]>([]);
+    const [dimensions, setDimensions] = useState<{width: number, height: number}>({width:0,height:0})
+    const graphDivRef = useRef<HTMLDivElement>(null); 
     // music player
     const [queue, setQueue] = useState<Track[]>([]);
     const [previouslyPlayed, setPreviouslyPlayed] = useState<Track[]>([]);
@@ -21,6 +24,17 @@ export default function Home() {
         setArtistData(newData);
     };
 
+    useEffect(() => {
+        const handleResize = () => {
+            if (!graphDivRef.current) return
+            setDimensions({width: graphDivRef.current.clientWidth, height:  graphDivRef.current.clientHeight})
+        };
+        handleResize()
+        window.addEventListener("resize", handleResize);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, []);
     useEffect(() => {
         const fetchData = async () => {
             const topTracksResp = await fetch(`/api/artist/top-tracks?id=${selectedArtistId}`);
@@ -58,8 +72,8 @@ export default function Home() {
     return (
         <main className={styles["page"]}>
             <div className={styles["main-section"]}>
-                <div className={styles["artist-explorer"]}>
-                    <ArtistNodeGraph setSelectedArtist={setSelectedArtist} addArtistData={addArtists} />
+                <div ref={graphDivRef} className={styles["artist-explorer"]}>
+                    <ArtistNodeGraph setSelectedArtist={setSelectedArtist} addArtistData={addArtists} width={dimensions.width} height={dimensions.height}/>
                 </div>
                 <div className={styles["side-bar"]}>
                     {selectedArtist && (

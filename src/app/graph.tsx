@@ -5,10 +5,12 @@ import { forceCenter, forceCollide, forceLink, forceManyBody } from "d3-force";
 
 interface ArtistNodeGraphProps {
     setSelectedArtist: (artistId: string) => void
-    addArtistData: (data: Artist[]) => void
+    addArtistData: (data: Artist[]) => void;
+    width: number;
+    height: number;
 }
 
-export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData}: ArtistNodeGraphProps) => {
+export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData, width, height}: ArtistNodeGraphProps) => {
     const fgRef = useRef<ForceGraphMethods>();
     const [data, setData] = useState<GraphData>();
     const hoverNode = useRef<string>("");
@@ -119,8 +121,8 @@ export const ArtistNodeGraph = ( {setSelectedArtist, addArtistData}: ArtistNodeG
         <>
             <ForceGraph2D
                 ref={fgRef}
-                width={window.innerWidth / 2}
-                height={window.innerHeight}
+                width={width}
+                height={height}
 
                 graphData={data}
                 linkColor="#ffffff"
