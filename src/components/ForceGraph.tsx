@@ -1,8 +1,16 @@
 import React, { MutableRefObject, forwardRef } from "react";
 import ForceGraph2D, { ForceGraphMethods, ForceGraphProps } from "react-force-graph-2d";
 
-const WrappedForceGraph2D = ({ref, ...props}: {ref: MutableRefObject<ForceGraphMethods<{}, {}> | undefined>; props: ForceGraphProps}) => {
-  return <ForceGraph2D ref={ref} {...props} />;
+// This is some wild jankiness to stop type errors
+// Library dislikes forwardRef?
+
+interface AdditionalProps {
+    forceRef: MutableRefObject<ForceGraphMethods<{}, {}> | undefined>;
+}
+type ExtendedForceGraphProps = ForceGraphProps<{}, {}> & AdditionalProps;
+
+const WrappedForceGraph2D = ({ forceRef, ...props }: ExtendedForceGraphProps) => {
+    return <ForceGraph2D ref={forceRef} {...props} />;
 };
 
 export default WrappedForceGraph2D;

@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import ForceGraph2D, { ForceGraphMethods, GraphData, NodeObject } from "react-force-graph-2d";
+import { ForceGraphMethods, GraphData, NodeObject } from "react-force-graph-2d";
 import { forceCollide, forceManyBody } from "d3-force";
 
-// import dynamic from "next/dynamic";
-// const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
-//     ssr: false,
-// });
+import dynamic from "next/dynamic";
+const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
+    ssr: false,
+});
 
 interface ArtistNodeGraphProps {
     setSelectedArtist: (artistId: string) => void;
@@ -18,6 +18,8 @@ interface ArtistNodeGraphProps {
 
 export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, height, seedId }: ArtistNodeGraphProps) => {
     const fgRef = useRef<ForceGraphMethods>();
+    const prevfgRef = useRef<ForceGraphMethods>();
+
     const [data, setData] = useState<GraphData>();
     const hoverNode = useRef<string>("");
     const fetchedArtists = useRef<string[]>([]);
@@ -52,12 +54,17 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
 
         fetchData();
 
-        if (fgRef.current) {
+
+    }, []);
+    useEffect(() => {
+        // ref changes each rerender 
+        if (fgRef.current && prevfgRef.current == undefined) {
             fgRef.current.d3Force("charge", forceManyBody().strength(-10));
             fgRef.current.d3Force("collide", forceCollide(6));
             fgRef.current.zoom(5);
         }
-    }, []);
+        prevfgRef.current = fgRef.current;
+    }, [fgRef.current])
 
     const getMoreArtists = async (node: NodeObject) => {
         if (!data) return;
@@ -105,8 +112,8 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
     
     return (
         <>
-            <ForceGraph2D
-                ref={fgRef}
+            <ForceGraph
+                forceRef={fgRef}
                 width={width}
                 height={height}
                 d3AlphaDecay={0.000228}
