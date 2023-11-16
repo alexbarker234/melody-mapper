@@ -36,6 +36,9 @@ export const getArtistTopTracks = async (artistId: string, accessToken?: string)
 export const getRelatedArtists = async (artistId: string, accessToken?: string) =>
     getFromSpotify(`https://api.spotify.com/v1/artists/${artistId}/related-artists`, { accessToken });
 
+export const searchArtists = async (query: string, accessToken?: string) =>
+    getFromSpotify(`https://api.spotify.com/v1/search?q=${query}&type=artist`, { accessToken });
+
 const getFromSpotify = async (endpoint: string, options?: { revalidate?: number; accessToken?: string }) => {
     if (!options) options = {};
     if (!options.revalidate) options.revalidate = 60 * 60 * 24;
@@ -43,8 +46,6 @@ const getFromSpotify = async (endpoint: string, options?: { revalidate?: number;
         const resp = await getAccessToken();
         options.accessToken = resp.access_token;
     }
-    console.log(endpoint)
-    console.log(options.accessToken)
     return fetch(endpoint, {
         headers: {
             Authorization: `Bearer ${options.accessToken}`,

@@ -1,16 +1,22 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import ForceGraph2D, { ForceGraphMethods, GraphData, LinkObject, NodeObject } from "react-force-graph-2d";
-import { forceCenter, forceCollide, forceLink, forceManyBody } from "d3-force";
+import ForceGraph2D, { ForceGraphMethods, GraphData, NodeObject } from "react-force-graph-2d";
+import { forceCollide, forceManyBody } from "d3-force";
+
+// import dynamic from "next/dynamic";
+// const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
+//     ssr: false,
+// });
 
 interface ArtistNodeGraphProps {
     setSelectedArtist: (artistId: string) => void;
     addArtistData: (data: Artist[]) => void;
     width: number;
     height: number;
+    seedId: string;
 }
 
-export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, height }: ArtistNodeGraphProps) => {
+export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, height, seedId }: ArtistNodeGraphProps) => {
     const fgRef = useRef<ForceGraphMethods>();
     const [data, setData] = useState<GraphData>();
     const hoverNode = useRef<string>("");
@@ -18,8 +24,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
 
     useEffect(() => {
         const fetchData = async () => {
-            console.log("fetching");
-            const seed = "2RVvqRBon9NgaGXKfywDSs";
+            const seed = seedId;
 
             const artistNodes: Artist[] = [];
 
@@ -97,7 +102,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
     const nodeSize = 10;
     const outlineWidth = 2;
     const fontSize = 5;
-
+    
     return (
         <>
             <ForceGraph2D

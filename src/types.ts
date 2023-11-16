@@ -38,8 +38,11 @@ interface SpotifyArtist {
         spotify: string;
     };
 }
-interface SpotifyRelatedArtists {
+interface SpotifyArtistsResponse {
     artists: SpotifyArtist[];
+}
+interface SpotifySearchResponse {
+    artists: {items: SpotifyArtist[]};
 }
 interface SpotifyTrack {
     album: {
