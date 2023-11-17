@@ -9,16 +9,23 @@ export default function ArtistSearch() {
     const [searchState, setState] = useState<"ok" | "searching" | "error">("ok");
 
     const search = async (searchText: string) => {
-        if (searchState == 'searching') return;
+        if (searchState == "searching") return;
         setState("searching");
 
-        const response = await fetch(`/api/search?query=${searchText}`);
-        if (!response.ok) {
+        // bug where token is fetched from cache first time
+        let attempts = 0;
+        let response: Response | undefined;
+        while (attempts < 2) {
+            response = await fetch(`/api/search?query=${searchText}`);
+            attempts++;
+            if (response.ok) break;
+        }
+        if (!response?.ok) {
             setState("error");
             return;
         }
 
-        const data = await response.json();
+        const data: Artist[] = await response.json();
 
         setArtistList(data);
         setState("ok");
@@ -27,7 +34,11 @@ export default function ArtistSearch() {
     return (
         <>
             <SearchBox runSearch={search} />
-            {searchState === "error" ? <div className={styles["error"]}>!</div> : <ArtistList items={artistList} isLoading={searchState === "searching"}></ArtistList>}
+            {searchState === "error" ? (
+                <div className={styles["error"]}>!</div>
+            ) : (
+                <ArtistList items={artistList} isLoading={searchState === "searching"}></ArtistList>
+            )}
         </>
     );
 }
@@ -36,7 +47,7 @@ function ArtistList({ items, isLoading }: { items: Artist[]; isLoading: boolean 
     if (isLoading)
         return (
             <div className={styles["items-container"]}>
-                <Loading style={{margin: 'auto'}}/>
+                <Loading style={{ margin: "auto" }} />
             </div>
         );
 

@@ -1,30 +1,62 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import styles from "./player.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBackward, faForward, faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
 
-export default function Player({
-    currentTrack,
-    isPlaying,
-    setIsPlaying,
-    nextTrack,
-    prevTrack,
-}: {
-    currentTrack: Track | undefined;
-    isPlaying: boolean;
-    setIsPlaying: (playing: boolean) => void;
+export type MusicPlayerRef = {
+    addToQueue: (tracks: Track[]) => void;
+    clearQueue: () => void;
     nextTrack: () => void;
     prevTrack: () => void;
-}) {
+    playTrack: (track: Track) => void;
+} | null;
+
+interface MusicPlayerProps extends React.HTMLAttributes<HTMLDivElement> {
+    trackList: Track[];
+}
+
+const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, ...props }, ref) => {
     const audioRef = useRef<HTMLAudioElement>(null);
+
+    const [queue, setQueue] = useState<Track[]>([]);
+    const [previouslyPlayed, setPreviouslyPlayed] = useState<Track[]>([]);
+    const [currentTrack, setCurrentTrack] = useState<Track>();
+    const [isPlaying, setIsPlaying] = useState(false);
 
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
 
+    // seeking
+    const [isDragging, setIsDragging] = useState(false);
+    const progressRef = useRef<HTMLDivElement>(null);
+
+    // mediasession
+    useEffect(() => {
+        // Set up Media Session API here
+        if (!navigator.mediaSession || !currentTrack) return;
+        navigator.mediaSession.metadata = new window.MediaMetadata({
+            title: currentTrack.name,
+            artist: currentTrack.artist.name,
+            album: currentTrack.album.name,
+            artwork: [{ src: currentTrack.imageURL, sizes: "640x640", type: "image/png" }],
+        });
+        navigator.mediaSession.setActionHandler("play", () => {
+            if (audioRef.current) audioRef.current.play();
+        });
+        navigator.mediaSession.setActionHandler("pause", () => {
+            if (audioRef.current) audioRef.current.pause();
+        });
+        navigator.mediaSession.setActionHandler("nexttrack", () => {
+            _nextTrack();
+        });
+        navigator.mediaSession.setActionHandler("previoustrack", () => {
+            _prevTrack();
+        });
+    }, [currentTrack]);
+
     const playPauseHandler = () => {
         if (!audioRef.current) return;
 
-        setIsPlaying(!isPlaying);
         if (isPlaying) {
             audioRef.current.pause();
         } else {
@@ -41,7 +73,7 @@ export default function Player({
 
     const endedHandler = () => {
         if (!audioRef.current) return;
-        nextTrack();
+        _nextTrack();
     };
 
     const calculateProgressBarWidth = () => {
@@ -51,6 +83,78 @@ export default function Player({
             return "0%";
         }
     };
+
+    // seeking
+    useEffect(() => {
+        const handleMouseMove = (event: MouseEvent) => {
+            if (isDragging && progressRef.current && audioRef.current) {
+                const clickX = event.clientX - progressRef.current.getBoundingClientRect().left;
+                const elementWidth = progressRef.current.offsetWidth;
+                const percentage = clickX / elementWidth;
+                audioRef.current.currentTime = audioRef.current.duration * percentage;
+            }
+        };
+
+        const handleMouseUp = () => {
+            setIsDragging(false);
+            if (audioRef.current && isPlaying) audioRef.current.play();
+        };
+
+        if (isDragging) {
+            document.addEventListener("mousemove", handleMouseMove, true);
+            document.addEventListener("mouseup", handleMouseUp, true);
+        } else {
+            document.removeEventListener("mousemove", handleMouseMove, true);
+            document.removeEventListener("mouseup", handleMouseUp, true);
+        }
+        return () => {
+            document.removeEventListener("mousemove", handleMouseMove, true);
+            document.removeEventListener("mouseup", handleMouseUp, true);
+        };
+    }, [isDragging]);
+
+    const handleSeek = (event: React.MouseEvent<HTMLDivElement>) => {
+        if (!audioRef.current) return;
+        const clickX = event.clientX - event.currentTarget.getBoundingClientRect().left;
+        const elementWidth = event.currentTarget.offsetWidth;
+        const percentage = clickX / elementWidth;
+        audioRef.current.currentTime = audioRef.current.duration * percentage;
+    };
+
+    // In the handle
+    const _addTracksToQueue = (tracks: Track[]) => {
+        setQueue((prevQueue) => [...prevQueue, ...tracks]);
+    };
+    const _clearQueue = () => setQueue([]);
+
+    const _nextTrack = () => {
+        if (queue.length == 0) {
+            setCurrentTrack(undefined);
+            setIsPlaying(false);
+            if (audioRef.current) audioRef.current.pause();
+            return;
+        }
+        const newQueue = [...queue];
+        newQueue.shift();
+        setQueue(newQueue);
+        setCurrentTrack(queue[0]);
+        setIsPlaying(true);
+    };
+    const _playTrack = (track: Track) => {
+        setCurrentTrack(track);
+        setIsPlaying(true);
+        // setQueue(trackList.slice(index + 1, trackList.length - 1))
+    };
+    const _prevTrack = () => {};
+
+    useImperativeHandle(ref, () => ({
+        addToQueue: _addTracksToQueue,
+        clearQueue: _clearQueue,
+        nextTrack: _nextTrack,
+        prevTrack: _prevTrack,
+        playTrack: _playTrack,
+    }));
+
     return (
         <footer className={styles["player"]}>
             <audio
@@ -58,6 +162,8 @@ export default function Player({
                 src={currentTrack?.previewURL}
                 onTimeUpdate={timeUpdateHandler}
                 onTimeUpdateCapture={timeUpdateHandler}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
                 onEnded={endedHandler}
                 autoPlay={isPlaying}
             ></audio>
@@ -68,28 +174,38 @@ export default function Player({
             </div>
             <div className={styles["controls"]}>
                 <div className={styles["buttons"]}>
-                    <button onClick={prevTrack} disabled={currentTrack == undefined}>
+                    <button onClick={_prevTrack} disabled={currentTrack == undefined}>
                         <FontAwesomeIcon icon={faBackward} />
                     </button>
                     <button onClick={playPauseHandler} disabled={currentTrack == undefined}>
                         {isPlaying ? <FontAwesomeIcon icon={faPause} /> : <FontAwesomeIcon icon={faPlay} />}
                     </button>
-                    <button onClick={nextTrack} disabled={currentTrack == undefined}>
+                    <button onClick={_nextTrack} disabled={currentTrack == undefined}>
                         <FontAwesomeIcon icon={faForward} />
                     </button>
                 </div>
-                <div className={styles["progress-bar"]}>
+                <div className={styles["progress-bar"]} ref={progressRef}>
                     <div
                         className={styles["progress-bar-inner"]}
                         style={{
                             width: calculateProgressBarWidth(),
                         }}
-                    ></div>
-                    <div style={{ marginTop: "10px" }}>
-                        {Math.floor(currentTime)}s / {Math.floor(duration)}s
-                    </div>
+                    />
+
+                    <div className={styles["progress-bar-clickable"]} onMouseDown={() => {setIsDragging(true); audioRef.current?.pause()}} onClick={handleSeek}/>
+                    <div className={styles["current"]}>{Math.floor(currentTime)}s</div>
+                    <div className={styles["duration"]}>{Math.floor(duration)}s</div>
+
+                    <div
+                        className={styles["ball"]}
+                        style={{
+                            left: calculateProgressBarWidth(),
+                        }}
+                    />
                 </div>
             </div>
         </footer>
     );
-}
+});
+
+export default MusicPlayer;

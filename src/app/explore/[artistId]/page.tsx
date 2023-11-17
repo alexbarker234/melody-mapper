@@ -2,7 +2,7 @@
 import { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { ArtistNodeGraph } from "./graph";
 import styles from "./page.module.scss";
-import Player from "./player";
+import MusicPlayer, { MusicPlayerRef } from "./player";
 
 export default function ArtistExplorer({ params }: { params: { artistId: string } }) {
     // graph
@@ -12,10 +12,8 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
     const [dimensions, setDimensions] = useState<{width: number, height: number}>({width:0,height:0})
     const graphDivRef = useRef<HTMLDivElement>(null); 
     // music player
-    const [queue, setQueue] = useState<Track[]>([]);
-    const [previouslyPlayed, setPreviouslyPlayed] = useState<Track[]>([]);
-    const [currentTrack, setCurrentTrack] = useState<Track>();
-    const [isPlaying, setIsPlaying] = useState(false);
+    const musicPlayerRef = useRef<MusicPlayerRef>(null); 
+
 
     // Only add artist data that isnt already in
     const addArtists = (artists: Artist[]) => {
@@ -48,23 +46,11 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
         }
     }, [selectedArtistId]);
 
-    const addTracksToQueue = (tracks: Track[]) => {
-        setQueue((prevQueue) => [...prevQueue, ...tracks]);
-    };
-    const nextTrack = () => {
-        const newQueue = [...queue]
-        newQueue.shift();
-        setQueue(newQueue)
-        setCurrentTrack(queue[0])
-        setIsPlaying(true)
-    }
-    const playTrack = (track: Track, index: number)  => {
-        setCurrentTrack(track)
-        setIsPlaying(true)
-        setQueue(trackList.slice(index + 1, trackList.length - 1))
-    }
-    const prevTrack = () => {
-
+    const playSong = (track: Track, index: number) => {
+        if (! musicPlayerRef.current) return;
+        musicPlayerRef.current.playTrack(track);
+        musicPlayerRef.current.clearQueue()
+        musicPlayerRef.current.addToQueue(trackList.slice(index + 1, trackList.length - 1))
     }
 
     const selectedArtist = artistData[selectedArtistId];
@@ -85,7 +71,7 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                             <div className={styles["tracks"]}>
                                 {trackList.length > 0 ? (
                                     trackList.map((track, index) => (
-                                        <div key={track.id} className={styles["track-item"]} onDoubleClick={() => playTrack(track, index)}>
+                                        <div key={track.id} className={styles["track-item"]} onDoubleClick={() => playSong(track, index)}>
                                             <img className={styles["track-image"]} src={track.imageURL} alt={track.name} />
                                             <div className={styles["track-details"]}>
                                                 {track.name}                  
@@ -100,7 +86,7 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                     )}
                 </div>
             </div>
-            <Player currentTrack={currentTrack} setIsPlaying={setIsPlaying} isPlaying={isPlaying} nextTrack={nextTrack} prevTrack={prevTrack} />
+            <MusicPlayer ref={musicPlayerRef} trackList={trackList} />
         </main>
     );
 }
