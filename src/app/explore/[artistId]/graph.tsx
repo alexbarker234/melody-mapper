@@ -59,7 +59,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
     useEffect(() => {
         // ref changes each rerender 
         if (fgRef.current && prevfgRef.current == undefined) {
-            fgRef.current.d3Force("charge", forceManyBody().strength(-10));
+            fgRef.current.d3Force("charge", forceManyBody().strength(-12));
             fgRef.current.d3Force("collide", forceCollide(6));
             fgRef.current.zoom(5);
         }
@@ -116,8 +116,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
                 forceRef={fgRef}
                 width={width}
                 height={height}
-                d3AlphaDecay={0.000228}
-                d3VelocityDecay={0.9}
+                d3VelocityDecay={0.8}
                 graphData={data}
                 linkColor="#ffffff"
                 linkAutoColorBy={(d) => "#ffffff"} // dude why does linkColor not work

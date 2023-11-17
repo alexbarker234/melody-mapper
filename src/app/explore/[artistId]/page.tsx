@@ -7,7 +7,7 @@ import Player from "./player";
 export default function ArtistExplorer({ params }: { params: { artistId: string } }) {
     // graph
     const [artistData, setArtistData] = useState<{ [key: string]: Artist }>({});
-    const [selectedArtistId, setSelectedArtist] = useState<string>("");
+    const [selectedArtistId, setSelectedArtist] = useState<string>(params.artistId);
     const [trackList, setTrackList] = useState<Track[]>([]);
     const [dimensions, setDimensions] = useState<{width: number, height: number}>({width:0,height:0})
     const graphDivRef = useRef<HTMLDivElement>(null); 

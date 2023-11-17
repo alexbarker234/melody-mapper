@@ -57,6 +57,14 @@
     }
 }
 
+.error {
+    color: #e92f2f;
+    font-size: 5rem;
+    pointer-events: none;
+    user-select: none;
+    margin: auto;
+    text-align: center;
+}
 @keyframes fade-drop-in {
     from {
         opacity: 0;
