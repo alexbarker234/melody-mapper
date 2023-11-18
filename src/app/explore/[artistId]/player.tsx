@@ -126,7 +126,7 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                 autoPlay={isPlaying}
             ></audio>
             <div className={styles["img-container"]}>
-                <Image src={currentTrack?.imageURL ?? ""} alt={currentTrack?.name ?? ""} width={640} height={640} />
+                {currentTrack && <Image src={currentTrack.imageURL} alt={currentTrack.name} width={640} height={640} />}
             </div>
             <div className={styles["track-details"]}>
                 <div className={styles["track-name"]}>{currentTrack?.name}</div>

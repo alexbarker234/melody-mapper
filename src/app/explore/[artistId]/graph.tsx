@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ForceGraphMethods, GraphData, NodeObject } from "react-force-graph-2d";
 import { forceCollide, forceManyBody } from "d3-force";
-import "./graphOverrides.scss"
+import "./graphOverrides.scss";
 
 import dynamic from "next/dynamic";
 const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
@@ -10,6 +10,7 @@ const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
 });
 
 interface ArtistNodeGraphProps {
+    selectedArtist: Artist;
     setSelectedArtist: (artistId: string) => void;
     addArtistData: (data: Artist[]) => void;
     width: number;
@@ -17,7 +18,7 @@ interface ArtistNodeGraphProps {
     seedId: string;
 }
 
-export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, height, seedId }: ArtistNodeGraphProps) => {
+export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistData, width, height, seedId }: ArtistNodeGraphProps) => {
     const fgRef = useRef<ForceGraphMethods>();
     const prevfgRef = useRef<ForceGraphMethods>();
 
@@ -63,7 +64,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
             fgRef.current.zoom(5);
         }
         prevfgRef.current = fgRef.current;
-    }, [fgRef.current])
+    }, [fgRef.current]);
 
     const getMoreArtists = async (node: NodeObject) => {
         if (!data) return;
@@ -81,7 +82,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
                     ...nodes,
                     ...relatedNodes
                         .filter((newNode) => !nodes.some((n) => n.id === newNode.id))
-                        .map((newNode) => ({ id: newNode.id, img: newNode.imageURL, label: newNode.name, x: node.x, y: node.y })),
+                        .map((newNode) => ({ id: newNode.id, img: newNode.imageURL, name: newNode.name, x: node.x, y: node.y })),
                 ],
                 links: [...links, ...relatedNodes.map((n) => ({ source: artistId, target: n.id }))],
             };
@@ -94,9 +95,9 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
         const artistId = node.id as string;
 
         const transitionMS = 500;
-        // fgRef.current.centerAt(node.x, node.y, transitionMS);
-        // fgRef.current.zoom(10, transitionMS);
-        if (!fetchedArtists.current.includes(artistId)) getMoreArtists(node);
+        fgRef.current.centerAt(node.x, node.y, transitionMS);
+        fgRef.current.zoom(10, transitionMS);
+        if (selectedArtist.id == node.id && !fetchedArtists.current.includes(artistId)) getMoreArtists(node);
         setSelectedArtist(artistId);
     };
     const handleHover = (node: NodeObject | null, previousNode: NodeObject | null) => {
@@ -108,7 +109,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
     const nodeSize = 10;
     const outlineWidth = 1.5;
     const fontSize = 5;
-    
+
     return (
         <>
             <ForceGraph
@@ -123,7 +124,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
                 nodeCanvasObject={(node, ctx, globalScale) => {
                     if (!node.x || !node.y) return;
 
-                    if (node.id == hoverNode.current) {
+                    if (node.id == hoverNode.current || node.id == selectedArtist.id) {
                         // Draw outline
                         ctx.beginPath();
                         ctx.roundRect(
@@ -137,6 +138,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
                         ctx.fill();
                     }
 
+                    // white default background
                     ctx.beginPath();
                     ctx.rect(node.x - nodeSize / 2, node.y - nodeSize / 2, nodeSize, nodeSize);
                     ctx.fillStyle = "white";
@@ -155,7 +157,6 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
                 nodeRelSize={nodeSize}
                 onNodeClick={handleClick}
                 onNodeHover={handleHover}
-                
             />
         </>
     );

@@ -11,12 +11,11 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
     const [artistData, setArtistData] = useState<{ [key: string]: Artist }>({});
     const [selectedArtistId, setSelectedArtist] = useState<string>(params.artistId);
     const [trackList, setTrackList] = useState<Track[]>([]);
-    const [dimensions, setDimensions] = useState<{width: number, height: number}>({width:0,height:0})
-    const graphDivRef = useRef<HTMLDivElement>(null); 
+    const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+    const graphDivRef = useRef<HTMLDivElement>(null);
 
     // music player
-    const musicPlayerRef = useRef<MusicPlayerRef>(null); 
-
+    const musicPlayerRef = useRef<MusicPlayerRef>(null);
 
     // Only add artist data that isnt already in
     const addArtists = (artists: Artist[]) => {
@@ -27,10 +26,10 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
 
     useEffect(() => {
         const handleResize = () => {
-            if (!graphDivRef.current) return
-            setDimensions({width: graphDivRef.current.clientWidth, height:  graphDivRef.current.clientHeight})
+            if (!graphDivRef.current) return;
+            setDimensions({ width: graphDivRef.current.clientWidth, height: graphDivRef.current.clientHeight });
         };
-        handleResize()
+        handleResize();
         window.addEventListener("resize", handleResize);
         return () => {
             window.removeEventListener("resize", handleResize);
@@ -50,21 +49,19 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
     }, [selectedArtistId]);
 
     const playSong = (track: Track, index: number) => {
-        if (! musicPlayerRef.current) return;
+        if (!musicPlayerRef.current) return;
         musicPlayerRef.current.playTrack(track);
-        musicPlayerRef.current.clearQueue()
-        musicPlayerRef.current.addToQueue(trackList.slice(index + 1, trackList.length - 1))
-    }
+        musicPlayerRef.current.clearQueue();
+        musicPlayerRef.current.addToQueue(trackList.slice(index + 1, trackList.length - 1));
+    };
 
     const selectedArtist = artistData[selectedArtistId];
     return (
         <main className={styles["page"]}>
             <div className={styles["main-section"]}>
-                <div
-                    ref={graphDivRef}
-                    className={styles["artist-explorer"]}
-                >
+                <div ref={graphDivRef} className={styles["artist-explorer"]}>
                     <ArtistNodeGraph
+                        selectedArtist={selectedArtist}
                         setSelectedArtist={setSelectedArtist}
                         addArtistData={addArtists}
                         width={dimensions.width}
@@ -75,7 +72,7 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                 <div className={styles["side-bar"]}>
                     {selectedArtist && (
                         <>
-                            <Image className={styles["artist-image"]} src={selectedArtist.imageURL} alt={selectedArtist.name} width={640} height={640}/>
+                            <Image className={styles["artist-image"]} src={selectedArtist.imageURL} alt={selectedArtist.name} width={640} height={640} />
                             <div className={styles["artist-title"]}>
                                 <a href={selectedArtist.link}>{selectedArtist.name}</a>
                             </div>
@@ -83,12 +80,12 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                                 {trackList.length > 0 ? (
                                     trackList.map((track, index) => (
                                         <div key={track.id} className={styles["track-item"]} onDoubleClick={() => playSong(track, index)}>
-                                            <Image className={styles["track-image"]} src={track.imageURL} alt={track.name} width={640} height={640}/>
+                                            <Image className={styles["track-image"]} src={track.imageURL} alt={track.name} width={640} height={640} />
                                             <div className={styles["track-details"]}>{track.name}</div>
                                         </div>
                                     ))
                                 ) : (
-                                    <Loading style={{marginTop: "2rem"}}/>
+                                    <Loading style={{ marginTop: "2rem" }} />
                                 )}
                             </div>
                         </>
