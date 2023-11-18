@@ -5,8 +5,19 @@
 
     display: flex;
 
-    img {
-        margin: 0.2rem;
+    .img-container {
+        height: 100%;
+        width: auto;
+        aspect-ratio: 1/1;
+        position: relative;
+        img {
+            position: absolute;
+            width: auto;
+            height: 90%;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+        } 
     }
 
     .track-details {

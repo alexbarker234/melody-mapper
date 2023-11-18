@@ -3,6 +3,7 @@ import styles from "./player.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBackward, faForward, faPause, faPlay, faVolumeHigh, faVolumeLow, faVolumeMute, faVolumeOff } from "@fortawesome/free-solid-svg-icons";
 import SlidingBar from "./slidingBar";
+import Image from "next/image";
 
 export type MusicPlayerRef = {
     addToQueue: (tracks: Track[]) => void;
@@ -115,13 +116,18 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                 src={currentTrack?.previewURL}
                 onTimeUpdate={timeUpdateHandler}
                 onTimeUpdateCapture={timeUpdateHandler}
-                onVolumeChange={(e) => {setVolume(e.currentTarget.volume); setMuted(e.currentTarget.muted)}}
+                onVolumeChange={(e) => {
+                    setVolume(e.currentTarget.volume);
+                    setMuted(e.currentTarget.muted);
+                }}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={endedHandler}
                 autoPlay={isPlaying}
             ></audio>
-            <img src={currentTrack?.imageURL} />
+            <div className={styles["img-container"]}>
+                <Image src={currentTrack?.imageURL ?? ""} alt={currentTrack?.name ?? ""} width={640} height={640} />
+            </div>
             <div className={styles["track-details"]}>
                 <div className={styles["track-name"]}>{currentTrack?.name}</div>
                 <div className={styles["artist-name"]}>{currentTrack?.artist.name}</div>
@@ -153,8 +159,11 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                     fillPercent={volume}
                     onFillChange={(percentage: number) => audioRef.current && (audioRef.current.volume = percentage)}
                 >
-                    <button className={`icon-button ${styles["volume-icon"]}`} onClick={() => audioRef.current && (audioRef.current.muted = !audioRef.current.muted)}>
-                        <FontAwesomeIcon icon={muted? faVolumeMute : volume > 0.5 ? faVolumeHigh : volume > 0 ? faVolumeLow : faVolumeOff} />
+                    <button
+                        className={`icon-button ${styles["volume-icon"]}`}
+                        onClick={() => audioRef.current && (audioRef.current.muted = !audioRef.current.muted)}
+                    >
+                        <FontAwesomeIcon icon={muted ? faVolumeMute : volume > 0.5 ? faVolumeHigh : volume > 0 ? faVolumeLow : faVolumeOff} />
                     </button>
                 </SlidingBar>
             </div>

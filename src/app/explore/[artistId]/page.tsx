@@ -4,6 +4,7 @@ import { ArtistNodeGraph } from "./graph";
 import styles from "./page.module.scss";
 import MusicPlayer, { MusicPlayerRef } from "./player";
 import Loading from "@/app/loading";
+import Image from "next/image";
 
 export default function ArtistExplorer({ params }: { params: { artistId: string } }) {
     // graph
@@ -74,7 +75,7 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                 <div className={styles["side-bar"]}>
                     {selectedArtist && (
                         <>
-                            <img className={styles["artist-image"]} src={selectedArtist.imageURL} />
+                            <Image className={styles["artist-image"]} src={selectedArtist.imageURL} alt={selectedArtist.name} width={640} height={640}/>
                             <div className={styles["artist-title"]}>
                                 <a href={selectedArtist.link}>{selectedArtist.name}</a>
                             </div>
@@ -82,7 +83,7 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                                 {trackList.length > 0 ? (
                                     trackList.map((track, index) => (
                                         <div key={track.id} className={styles["track-item"]} onDoubleClick={() => playSong(track, index)}>
-                                            <img className={styles["track-image"]} src={track.imageURL} alt={track.name} />
+                                            <Image className={styles["track-image"]} src={track.imageURL} alt={track.name} width={640} height={640}/>
                                             <div className={styles["track-details"]}>{track.name}</div>
                                         </div>
                                     ))

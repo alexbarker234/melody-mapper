@@ -3,6 +3,7 @@ import { useState } from "react";
 import SearchBox from "@/components/searchBox";
 import styles from "./artistSearch.module.scss";
 import Loading from "./loading";
+import Image from "next/image";
 
 export default function ArtistSearch() {
     const [artistList, setArtistList] = useState<Artist[]>([]);
@@ -58,7 +59,7 @@ function ArtistList({ items, isLoading }: { items: Artist[]; isLoading: boolean 
                     return (
                         <div key={Math.random()} className={styles["item-box"]} style={{ animationDelay: `${index * 0.05}s` }}>
                             <a href={`/explore/${artist.id}`}>
-                                <img src={artist.imageURL} alt="artist" />
+                                <Image src={artist.imageURL} alt="artist" width={640} height={640}/>
                             </a>
                             <div>{artist.name}</div>
                         </div>

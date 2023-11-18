@@ -5,5 +5,14 @@ module.exports = {
             fullUrl: true,
         },
     },
-    images: {},
+    images: {
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "i.scdn.co",
+                port: "",
+                pathname: "/**",
+            }
+        ],
+    },
 };
