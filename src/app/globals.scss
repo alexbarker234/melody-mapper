@@ -21,3 +21,24 @@ a {
         opacity: 0.6;
     }
 }
+
+.icon-button {
+    background-color: unset;
+    border: none;
+    color: white;
+    
+    transition: opacity 0.1s, scale 0.1s;
+    cursor: pointer;
+    
+    &:hover {
+        opacity: 0.8;
+        scale: 1.1;
+    }
+    &:active {
+        scale: 0.9;
+    }
+    &:disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+}

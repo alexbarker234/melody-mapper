@@ -114,6 +114,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
                 forceRef={fgRef}
                 width={width}
                 height={height}
+                d3AlphaDecay={0.01}
                 d3VelocityDecay={0.7}
                 graphData={data}
                 linkColor="#ffffff"

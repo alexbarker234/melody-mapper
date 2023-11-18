@@ -128,13 +128,13 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
             </div>
             <div className={styles["controls"]}>
                 <div className={styles["buttons"]}>
-                    <button onClick={_prevTrack} disabled={currentTrack == undefined}>
+                    <button className="icon-button" onClick={_prevTrack} disabled={currentTrack == undefined}>
                         <FontAwesomeIcon icon={faBackward} />
                     </button>
-                    <button onClick={playPauseHandler} disabled={currentTrack == undefined}>
+                    <button className="icon-button" onClick={playPauseHandler} disabled={currentTrack == undefined}>
                         {isPlaying ? <FontAwesomeIcon icon={faPause} /> : <FontAwesomeIcon icon={faPlay} />}
                     </button>
-                    <button onClick={_nextTrack} disabled={currentTrack == undefined}>
+                    <button className="icon-button" onClick={_nextTrack} disabled={currentTrack == undefined}>
                         <FontAwesomeIcon icon={faForward} />
                     </button>
                 </div>
@@ -153,9 +153,9 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                     fillPercent={volume}
                     onFillChange={(percentage: number) => audioRef.current && (audioRef.current.volume = percentage)}
                 >
-                    <div className={styles["volume-icon"]} onClick={() => audioRef.current && (audioRef.current.muted = !audioRef.current.muted)}>
+                    <button className={`icon-button ${styles["volume-icon"]}`} onClick={() => audioRef.current && (audioRef.current.muted = !audioRef.current.muted)}>
                         <FontAwesomeIcon icon={muted? faVolumeMute : volume > 0.5 ? faVolumeHigh : volume > 0 ? faVolumeLow : faVolumeOff} />
-                    </div>
+                    </button>
                 </SlidingBar>
             </div>
         </footer>
