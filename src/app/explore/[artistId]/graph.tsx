@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ForceGraphMethods, GraphData, NodeObject } from "react-force-graph-2d";
 import { forceCollide, forceManyBody } from "d3-force";
+import "./graphOverrides.scss"
 
 import dynamic from "next/dynamic";
 const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
@@ -44,7 +45,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
             });
 
             const gData: GraphData = {
-                nodes: artistNodes.map((n) => ({ id: n.id, img: n.imageURL, label: n.name })),
+                nodes: artistNodes.map((n) => ({ id: n.id, img: n.imageURL, name: n.name })),
                 links: artistNodes.map((n) => ({ source: seedNode.id, target: n.id })),
             };
 
@@ -105,7 +106,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
     };
 
     const nodeSize = 10;
-    const outlineWidth = 2;
+    const outlineWidth = 1.5;
     const fontSize = 5;
     
     return (
@@ -134,26 +135,6 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
                         );
                         ctx.fillStyle = "white";
                         ctx.fill();
-
-                        // Draw text border
-                        ctx.font = `${fontSize}px Roboto`;
-                        const textMetrics = ctx.measureText(node.label);
-                        let actualHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-
-                        ctx.beginPath();
-                        ctx.roundRect(
-                            node.x + nodeSize / 2,
-                            node.y - actualHeight / 2 - 2,
-                            textMetrics.width + outlineWidth + outlineWidth,
-                            actualHeight + 4,
-                            2
-                        );
-                        ctx.fillStyle = "white";
-                        ctx.fill();
-
-                        // Draw text
-                        ctx.fillStyle = "black";
-                        ctx.fillText(node.label || "", node.x + nodeSize / 2 + outlineWidth, node.y + actualHeight / 2);
                     }
 
                     ctx.beginPath();
