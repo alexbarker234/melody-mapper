@@ -1,8 +1,5 @@
 .sliding-bar {
-    position: absolute;
-    top: 65%;
-    translate: 0 -50%;
-
+    position: relative;
     background-color: var(--dark-grey);
 
     width: 100%;

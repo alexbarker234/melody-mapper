@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import styles from "./player.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBackward, faForward, faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
+import { faBackward, faForward, faPause, faPlay, faVolumeHigh, faVolumeLow, faVolumeOff } from "@fortawesome/free-solid-svg-icons";
 import SlidingBar from "./slidingBar";
 
 export type MusicPlayerRef = {
@@ -114,6 +114,7 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                 src={currentTrack?.previewURL}
                 onTimeUpdate={timeUpdateHandler}
                 onTimeUpdateCapture={timeUpdateHandler}
+                onVolumeChange={(e) => setVolume(e.currentTarget.volume)}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={endedHandler}
@@ -146,9 +147,18 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                     <div className={styles["current"]}>{Math.floor(currentTime)}s</div>
                     <div className={styles["duration"]}>{Math.floor(duration)}s</div>
                 </SlidingBar>
+                <SlidingBar
+                    className={styles["volume-bar"]}
+                    fillPercent={volume}
+                    onFillChange={(percentage: number) => audioRef.current && (audioRef.current.volume = percentage)}
+                >
+                    <div className={styles["volume-icon"]}>
+                        <FontAwesomeIcon icon={volume > 0.5 ? faVolumeHigh : volume > 0 ? faVolumeLow : faVolumeOff} />
+                    </div>
+                </SlidingBar>
             </div>
         </footer>
     );
 });
 
-export default MusicPlayer
+export default MusicPlayer;

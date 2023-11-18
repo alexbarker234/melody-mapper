@@ -23,7 +23,7 @@
 
     .controls {
         position: absolute;
-        width: 60%;
+        width: 100%;
         height: 100%;
         left: 50%;
         transform: translateX(-50%);
@@ -71,7 +71,12 @@
     }
 
     .progress-bar {
-
+        position: absolute;
+        top: 65%;
+        left: 50%;
+        translate: -50% -50%;
+        width: 60%;
+    
         .current,
         .duration {
             position: absolute;
@@ -91,4 +96,18 @@
 
         }
     }
+    .volume-bar {
+        position: absolute;
+        right: 2rem;
+        top: 50%;
+        translate: 0 -50%;   
+        width: 8rem;
+        .volume-icon {
+            font-size: 1.5rem;
+            position: absolute;
+            left: -2.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+     }
 }

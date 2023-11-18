@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import styles from "./slidingBar.module.scss";
+import { clamp } from "@/lib/mathUtils";
 
 interface SlidingBarProps {
     children: ReactNode;
@@ -21,7 +22,7 @@ const SlidingBar = ({ children, disabled, fillPercent: progressPercent, classNam
             if (isDragging && progressRef.current) {
                 const clickX = event.clientX - progressRef.current.getBoundingClientRect().left;
                 const elementWidth = progressRef.current.offsetWidth;
-                const percentage = clickX / elementWidth;
+                const percentage = clamp(clickX / elementWidth, 0 , 1);
                 if (onFillChange) onFillChange(percentage);
             }
         };
@@ -50,7 +51,7 @@ const SlidingBar = ({ children, disabled, fillPercent: progressPercent, classNam
         if (!progressRef.current) return;
         const clickX = event.clientX - progressRef.current.getBoundingClientRect().left;
         const elementWidth = progressRef.current.offsetWidth;
-        const percentage = clickX / elementWidth;
+        const percentage = clamp(clickX / elementWidth,0 , 1);
         if (onFillChange) onFillChange(percentage);
         if (onSlideEnd) onSlideEnd();
     };
