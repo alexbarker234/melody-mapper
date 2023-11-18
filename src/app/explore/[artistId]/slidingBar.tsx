@@ -5,12 +5,13 @@ interface SlidingBarProps {
     children: ReactNode;
     fillPercent: number;
     disabled?: boolean;
+    className?: string;
     onFillChange?: (percent: number) => void;
     onSlideStart?: () => void;
     onSlideEnd?: () => void;
 }
 
-const SlidingBar = ({ children, disabled, fillPercent: progressPercent, onSlideStart, onSlideEnd, onFillChange }: SlidingBarProps) => {
+const SlidingBar = ({ children, disabled, fillPercent: progressPercent, className, onSlideStart, onSlideEnd, onFillChange }: SlidingBarProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const progressRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +56,7 @@ const SlidingBar = ({ children, disabled, fillPercent: progressPercent, onSlideS
     };
 
     return (
-        <div className={`${styles["sliding-bar"]} ${disabled ? styles["disabled"] : ""}`} ref={progressRef}>
+        <div className={`${styles["sliding-bar"]} ${disabled ? styles["disabled"] : ""} ${className ?? ""}` } ref={progressRef}>
             <div
                 className={styles["sliding-bar-inner"]}
                 style={{

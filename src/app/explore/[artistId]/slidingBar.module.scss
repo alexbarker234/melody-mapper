@@ -42,21 +42,4 @@
     .sliding-bar-clickable:hover ~ .ball {
         scale: 1;
     }
-    .current,
-    .duration {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        pointer-events: none;
-    }
-    
-    .current {
-        right: 100%;
-        margin-right: 0.5rem;
-    }
-    
-    .duration {
-        left: 100%;
-        margin-left: 0.5rem;
-    }
 }

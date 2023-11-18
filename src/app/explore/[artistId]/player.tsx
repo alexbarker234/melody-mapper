@@ -137,6 +137,7 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                     </button>
                 </div>
                 <SlidingBar
+                    className={styles["progress-bar"]}
                     fillPercent={duration > 0 ? currentTime / duration : 0}
                     onFillChange={(percentage: number) => audioRef.current && (audioRef.current.currentTime = audioRef.current.duration * percentage)}
                     onSlideStart={() => audioRef.current?.pause()}
