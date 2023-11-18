@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 
         if (resp.status != 200) {
             console.log("ERROR!!!!!");
-            console.log({ artistId: query });
+            console.log(query);
             console.log(resp);
             return NextResponse.json({ error: "error" }, { status: resp.status });
         }

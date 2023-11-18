@@ -53,11 +53,9 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
         };
 
         fetchData();
-
-
     }, []);
     useEffect(() => {
-        // ref changes each rerender 
+        // ref changes each rerender...
         if (fgRef.current && prevfgRef.current == undefined) {
             fgRef.current.d3Force("charge", forceManyBody().strength(-16));
             fgRef.current.d3Force("collide", forceCollide(6));
@@ -175,6 +173,7 @@ export const ArtistNodeGraph = ({ setSelectedArtist, addArtistData, width, heigh
                 nodeRelSize={nodeSize}
                 onNodeClick={handleClick}
                 onNodeHover={handleHover}
+                
             />
         </>
     );

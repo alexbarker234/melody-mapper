@@ -11,6 +11,7 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
     const [trackList, setTrackList] = useState<Track[]>([]);
     const [dimensions, setDimensions] = useState<{width: number, height: number}>({width:0,height:0})
     const graphDivRef = useRef<HTMLDivElement>(null); 
+
     // music player
     const musicPlayerRef = useRef<MusicPlayerRef>(null); 
 
@@ -54,12 +55,20 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
     }
 
     const selectedArtist = artistData[selectedArtistId];
-
     return (
         <main className={styles["page"]}>
             <div className={styles["main-section"]}>
-                <div ref={graphDivRef} className={styles["artist-explorer"]}>
-                    <ArtistNodeGraph setSelectedArtist={setSelectedArtist} addArtistData={addArtists} width={dimensions.width} height={dimensions.height} seedId={params.artistId}/>
+                <div
+                    ref={graphDivRef}
+                    className={styles["artist-explorer"]}
+                >
+                    <ArtistNodeGraph
+                        setSelectedArtist={setSelectedArtist}
+                        addArtistData={addArtists}
+                        width={dimensions.width}
+                        height={dimensions.height}
+                        seedId={params.artistId}
+                    />
                 </div>
                 <div className={styles["side-bar"]}>
                     {selectedArtist && (
@@ -73,9 +82,7 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                                     trackList.map((track, index) => (
                                         <div key={track.id} className={styles["track-item"]} onDoubleClick={() => playSong(track, index)}>
                                             <img className={styles["track-image"]} src={track.imageURL} alt={track.name} />
-                                            <div className={styles["track-details"]}>
-                                                {track.name}                  
-                                            </div>
+                                            <div className={styles["track-details"]}>{track.name}</div>
                                         </div>
                                     ))
                                 ) : (

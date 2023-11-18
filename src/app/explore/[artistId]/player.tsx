@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import styles from "./player.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBackward, faForward, faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
+import SlidingBar from "./slidingBar";
 
 export type MusicPlayerRef = {
     addToQueue: (tracks: Track[]) => void;
@@ -25,10 +26,7 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
 
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-
-    // seeking
-    const [isDragging, setIsDragging] = useState(false);
-    const progressRef = useRef<HTMLDivElement>(null);
+    const [volume, setVolume] = useState(1);
 
     // mediasession
     useEffect(() => {
@@ -76,51 +74,6 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
         _nextTrack();
     };
 
-    const calculateProgressBarWidth = () => {
-        if (duration > 0) {
-            return (currentTime / duration) * 100 + "%";
-        } else {
-            return "0%";
-        }
-    };
-
-    // seeking
-    useEffect(() => {
-        const handleMouseMove = (event: MouseEvent) => {
-            if (isDragging && progressRef.current && audioRef.current) {
-                const clickX = event.clientX - progressRef.current.getBoundingClientRect().left;
-                const elementWidth = progressRef.current.offsetWidth;
-                const percentage = clickX / elementWidth;
-                audioRef.current.currentTime = audioRef.current.duration * percentage;
-            }
-        };
-
-        const handleMouseUp = () => {
-            setIsDragging(false);
-            if (audioRef.current && isPlaying) audioRef.current.play();
-        };
-
-        if (isDragging) {
-            document.addEventListener("mousemove", handleMouseMove, true);
-            document.addEventListener("mouseup", handleMouseUp, true);
-        } else {
-            document.removeEventListener("mousemove", handleMouseMove, true);
-            document.removeEventListener("mouseup", handleMouseUp, true);
-        }
-        return () => {
-            document.removeEventListener("mousemove", handleMouseMove, true);
-            document.removeEventListener("mouseup", handleMouseUp, true);
-        };
-    }, [isDragging]);
-
-    const handleSeek = (event: React.MouseEvent<HTMLDivElement>) => {
-        if (!audioRef.current) return;
-        const clickX = event.clientX - event.currentTarget.getBoundingClientRect().left;
-        const elementWidth = event.currentTarget.offsetWidth;
-        const percentage = clickX / elementWidth;
-        audioRef.current.currentTime = audioRef.current.duration * percentage;
-    };
-
     // In the handle
     const _addTracksToQueue = (tracks: Track[]) => {
         setQueue((prevQueue) => [...prevQueue, ...tracks]);
@@ -143,7 +96,6 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
     const _playTrack = (track: Track) => {
         setCurrentTrack(track);
         setIsPlaying(true);
-        // setQueue(trackList.slice(index + 1, trackList.length - 1))
     };
     const _prevTrack = () => {};
 
@@ -184,28 +136,18 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                         <FontAwesomeIcon icon={faForward} />
                     </button>
                 </div>
-                <div className={styles["progress-bar"]} ref={progressRef}>
-                    <div
-                        className={styles["progress-bar-inner"]}
-                        style={{
-                            width: calculateProgressBarWidth(),
-                        }}
-                    />
-
-                    <div className={styles["progress-bar-clickable"]} onMouseDown={() => {setIsDragging(true); audioRef.current?.pause()}} onClick={handleSeek}/>
+                <SlidingBar
+                    fillPercent={duration > 0 ? currentTime / duration : 0}
+                    onFillChange={(percentage: number) => audioRef.current && (audioRef.current.currentTime = audioRef.current.duration * percentage)}
+                    onSlideStart={() => audioRef.current?.pause()}
+                    onSlideEnd={() => isPlaying && audioRef.current?.play()}
+                >
                     <div className={styles["current"]}>{Math.floor(currentTime)}s</div>
                     <div className={styles["duration"]}>{Math.floor(duration)}s</div>
-
-                    <div
-                        className={styles["ball"]}
-                        style={{
-                            left: calculateProgressBarWidth(),
-                        }}
-                    />
-                </div>
+                </SlidingBar>
             </div>
         </footer>
     );
 });
 
-export default MusicPlayer;
+export default MusicPlayer
