@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import styles from "./player.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBackward, faForward, faPause, faPlay, faVolumeHigh, faVolumeLow, faVolumeOff } from "@fortawesome/free-solid-svg-icons";
+import { faBackward, faForward, faPause, faPlay, faVolumeHigh, faVolumeLow, faVolumeMute, faVolumeOff } from "@fortawesome/free-solid-svg-icons";
 import SlidingBar from "./slidingBar";
 
 export type MusicPlayerRef = {
@@ -27,6 +27,7 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
+    const [muted, setMuted] = useState(false);
 
     // mediasession
     useEffect(() => {
@@ -114,7 +115,7 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                 src={currentTrack?.previewURL}
                 onTimeUpdate={timeUpdateHandler}
                 onTimeUpdateCapture={timeUpdateHandler}
-                onVolumeChange={(e) => setVolume(e.currentTarget.volume)}
+                onVolumeChange={(e) => {setVolume(e.currentTarget.volume); setMuted(e.currentTarget.muted)}}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={endedHandler}
@@ -152,8 +153,8 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                     fillPercent={volume}
                     onFillChange={(percentage: number) => audioRef.current && (audioRef.current.volume = percentage)}
                 >
-                    <div className={styles["volume-icon"]}>
-                        <FontAwesomeIcon icon={volume > 0.5 ? faVolumeHigh : volume > 0 ? faVolumeLow : faVolumeOff} />
+                    <div className={styles["volume-icon"]} onClick={() => audioRef.current && (audioRef.current.muted = !audioRef.current.muted)}>
+                        <FontAwesomeIcon icon={muted? faVolumeMute : volume > 0.5 ? faVolumeHigh : volume > 0 ? faVolumeLow : faVolumeOff} />
                     </div>
                 </SlidingBar>
             </div>
