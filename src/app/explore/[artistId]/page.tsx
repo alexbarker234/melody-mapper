@@ -3,6 +3,7 @@ import { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { ArtistNodeGraph } from "./graph";
 import styles from "./page.module.scss";
 import MusicPlayer, { MusicPlayerRef } from "./player";
+import Loading from "@/app/loading";
 
 export default function ArtistExplorer({ params }: { params: { artistId: string } }) {
     // graph
@@ -86,7 +87,7 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                                         </div>
                                     ))
                                 ) : (
-                                    <div>Loading...</div>
+                                    <Loading style={{marginTop: "2rem"}}/>
                                 )}
                             </div>
                         </>

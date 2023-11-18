@@ -16,6 +16,7 @@
     height: 100%;
 }
 .side-bar {
+    position: relative;
     border-left: 1px white solid;
     width: 70%;
     height: 100%;
@@ -36,6 +37,7 @@
         font-size: 2rem;
     }
     .tracks {
+        position: relative;
         .track-item {
             height: 4rem;
             line-height: 4rem;
