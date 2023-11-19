@@ -17,7 +17,7 @@
 }
 .side-bar {
     position: relative;
-    border-left: 1px white solid;
+    border-left: 1px #92929c solid;
     width: 70%;
     height: 100%;
     overflow: hidden;
@@ -44,10 +44,6 @@
             display: flex;
             cursor: pointer;
             transition: background-color 0.2s;
-
-            &:not(:last-child) {
-                border-bottom: 1px white solid;
-            }
 
             &:hover {
                 background-color: rgba(255,255,255,0.1);

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { ForceGraphMethods, GraphData, NodeObject } from "react-force-graph-2d";
+import { ForceGraphMethods, GraphData, LinkObject, NodeObject } from "react-force-graph-2d";
 import { forceCollide, forceManyBody } from "d3-force";
 import "./graphOverrides.scss";
 
@@ -8,6 +8,23 @@ import dynamic from "next/dynamic";
 const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
     ssr: false,
 });
+
+interface ArtistNodeObject  {
+    artist: Artist;
+    links: ArtistLinkObject[]
+    id: string;
+    x?: number;
+    y?: number;
+    vx?: number;
+    vy?: number;
+    fx?: number;
+    fy?: number;
+}
+interface ArtistLinkObject extends LinkObject  {
+    source: string;
+    target: string;
+}
+
 
 interface ArtistNodeGraphProps {
     selectedArtist: Artist;
@@ -25,6 +42,8 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
     const [data, setData] = useState<GraphData>();
     const hoverNode = useRef<string>("");
     const fetchedArtists = useRef<string[]>([]);
+
+    const highlightedLinks = useRef<ArtistLinkObject[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -45,12 +64,10 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
                 artistNodes.push(artistNode);
             });
 
-            const gData: GraphData = {
-                nodes: artistNodes.map((n) => ({ id: n.id, img: n.imageURL, name: n.name })),
-                links: artistNodes.map((n) => ({ source: seedNode.id, target: n.id })),
-            };
+            const links: ArtistLinkObject[] = artistNodes.map((n) => ({ source: seedNode.id, target: n.id }))
+            const nodes: ArtistNodeObject[] = artistNodes.map((artist) => ({ id: artist.id, name: artist.name, artist: artist, links: links.filter((l) => l.source == artist.id ||  l.target == artist.id) }))
 
-            setData(gData);
+            setData({ nodes, links });
             addArtistData(artistNodes);
         };
 
@@ -67,8 +84,10 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
     }, [fgRef.current]);
 
     const getMoreArtists = async (node: NodeObject) => {
+        const artistNode = node as ArtistNodeObject
+
         if (!data) return;
-        const artistId = node.id;
+        const artistId = artistNode.id;
 
         const relatedNodesResp = await fetch(`/api/artist/related?id=${artistId}`);
         if (relatedNodesResp.status != 200) return console.log("related error");
@@ -77,33 +96,52 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
         setData((prevData) => {
             const { nodes, links } = prevData as GraphData;
 
-            return {
+            const newData = {
                 nodes: [
                     ...nodes,
                     ...relatedNodes
-                        .filter((newNode) => !nodes.some((n) => n.id === newNode.id))
-                        .map((newNode) => ({ id: newNode.id, img: newNode.imageURL, name: newNode.name, x: node.x, y: node.y })),
+                        .filter((newArtist) => !nodes.some((n) => n.id === newArtist.id))
+                        .map((newArtist) => ({ id: newArtist.id, name: newArtist.name, artist: newArtist, x: artistNode.x, y: artistNode.y, links: []})),
                 ],
-                links: [...links, ...relatedNodes.map((n) => ({ source: artistId, target: n.id }))],
-            };
+                links: [...links, ...relatedNodes.map((newArtist) => ({ source: artistId, target: newArtist.id }))],
+            }
+
+            newData.links.forEach((link) => {
+                const artistLink = link as ArtistLinkObject;
+                if (!link || !link.source || !link.target) return;
+                const a = newData.nodes.find((n) => n.id == artistLink.source) as ArtistNodeObject;
+                const b = newData.nodes.find((n) => n.id == artistLink.target) as ArtistNodeObject;
+                console.log(a, b)
+                if (!a || !b) return;
+
+                !a.links && (a.links = []);
+                !b.links && (b.links = []);
+                a.links.push(artistLink);
+                b.links.push(artistLink);
+            });
+            return newData;
         });
         addArtistData(relatedNodes);
     };
 
     const handleClick = (node: NodeObject) => {
-        if (!node.id || !node.x || !node.y || !fgRef.current) return;
-        const artistId = node.id as string;
+        const artistNode = node as ArtistNodeObject
+        if (!artistNode.id || !artistNode.x || !artistNode.y || !fgRef.current) return;
+        const artistId = artistNode.id as string;
 
         const transitionMS = 500;
-        fgRef.current.centerAt(node.x, node.y, transitionMS);
+        fgRef.current.centerAt(artistNode.x, artistNode.y, transitionMS);
         fgRef.current.zoom(10, transitionMS);
-        if (selectedArtist.id == node.id && !fetchedArtists.current.includes(artistId)) getMoreArtists(node);
+        if (selectedArtist.id == artistNode.id && !fetchedArtists.current.includes(artistId)) getMoreArtists(artistNode);
         setSelectedArtist(artistId);
     };
     const handleHover = (node: NodeObject | null, previousNode: NodeObject | null) => {
+        highlightedLinks.current = []
         hoverNode.current = "";
         if (!node || !node.x || !node.y || !fgRef.current) return;
         hoverNode.current = (node.id ?? "") as string;
+
+        node.links.forEach((link: LinkObject) => highlightedLinks.current.push(link as ArtistLinkObject));
     };
 
     const nodeSize = 10;
@@ -119,17 +157,17 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
                 d3AlphaDecay={0.01}
                 d3VelocityDecay={0.7}
                 graphData={data}
-                linkColor="#ffffff"
-                linkAutoColorBy={(d) => "#ffffff"} // dude why does linkColor not work
+                linkColor={(link) => (highlightedLinks.current.includes(link as ArtistLinkObject) ? "#3965a8" : "#ffffff")}
                 nodeCanvasObject={(node, ctx, globalScale) => {
-                    if (!node.x || !node.y) return;
+                    const artistNode = node as ArtistNodeObject;
+                    if (!artistNode.x || !artistNode.y) return;
 
-                    if (node.id == hoverNode.current || node.id == selectedArtist.id) {
+                    if (artistNode.id == hoverNode.current || artistNode.id == selectedArtist.id) {
                         // Draw outline
                         ctx.beginPath();
                         ctx.roundRect(
-                            node.x - nodeSize / 2 - outlineWidth,
-                            node.y - nodeSize / 2 - outlineWidth,
+                            artistNode.x - nodeSize / 2 - outlineWidth,
+                            artistNode.y - nodeSize / 2 - outlineWidth,
                             nodeSize + outlineWidth * 2,
                             nodeSize + outlineWidth * 2,
                             2
@@ -140,13 +178,13 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
 
                     // white default background
                     ctx.beginPath();
-                    ctx.rect(node.x - nodeSize / 2, node.y - nodeSize / 2, nodeSize, nodeSize);
+                    ctx.rect(artistNode.x - nodeSize / 2, artistNode.y - nodeSize / 2, nodeSize, nodeSize);
                     ctx.fillStyle = "white";
                     ctx.fill();
 
                     const img = new Image(nodeSize, nodeSize);
-                    img.src = node.img;
-                    ctx.drawImage(img, node.x - nodeSize / 2, node.y - nodeSize / 2, nodeSize, nodeSize);
+                    img.src = artistNode.artist.imageURL;
+                    ctx.drawImage(img, artistNode.x - nodeSize / 2, artistNode.y - nodeSize / 2, nodeSize, nodeSize);
                 }}
                 nodePointerAreaPaint={(node, color, ctx) => {
                     if (!node.x || !node.y) return;
@@ -157,6 +195,9 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
                 nodeRelSize={nodeSize}
                 onNodeClick={handleClick}
                 onNodeHover={handleHover}
+                linkDirectionalParticles={4}
+                linkDirectionalParticleWidth={(link) => (highlightedLinks.current.includes(link as ArtistLinkObject) ? 2 : 0)}
+                linkDirectionalParticleSpeed={0}
             />
         </>
     );
