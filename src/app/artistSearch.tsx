@@ -7,6 +7,8 @@ import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
+import NoArtist from '@/../public/NoArtistImg.svg'
+
 export default function ArtistSearch() {
     const router = useRouter();
     const pathname = usePathname();
@@ -66,8 +68,12 @@ function ArtistList({ items, isLoading }: { items: Artist[]; isLoading: boolean 
                 items.map((artist, index) => {
                     return (
                         <div key={Math.random()} className={styles["item-box"]} style={{ animationDelay: `${index * 0.05}s` }}>
-                            <Link href={`/explore/${artist.id}`} className={styles["artist-image"]} >
-                                {artist.imageURL && <Image src={artist.imageURL} alt="artist" width={640} height={640}/>}
+                            <Link href={`/explore/${artist.id}`} className={styles["artist-image"]}>
+                                {artist.imageURL ? (
+                                    <Image src={artist.imageURL} alt={artist.name} width={640} height={640} />
+                                ) : (
+                                    <Image className={styles["no-img"]} src={NoArtist} alt={artist.name} />
+                                )}
                             </Link>
                             <div>{artist.name}</div>
                         </div>

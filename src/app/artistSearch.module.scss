@@ -33,6 +33,7 @@
         animation: fade-drop-in 0.5s forwards;
 
         .artist-image {
+            position: relative;
             display: block;
 
             width: 100%;
@@ -45,7 +46,7 @@
 
             user-select: none;
 
-            background-color: pink;
+            background-color: var(--grey);
 
             overflow: hidden;
             img {
@@ -53,8 +54,15 @@
                 height: auto;
                 aspect-ratio: 1/1;
                 object-fit: cover;
+                &.no-img {
+                    position: absolute;
+                    width: 70%;
+                    left: 50%;
+                    top: 50%;
+                    transform: translate(-50%, -50%);
+                    filter: invert(0.3);
+                }
             }
-
             &:hover {
                 opacity: 0.5;
             }
