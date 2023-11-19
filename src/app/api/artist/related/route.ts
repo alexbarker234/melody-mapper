@@ -9,16 +9,15 @@ export async function GET(req: Request) {
 
         const artists: Artist[] = [];
 
-        const resp = await getRelatedArtists(artistId);
+        const spotifyResponse = await getRelatedArtists(artistId);
 
-        if (resp.status >= 400) {
-            console.log("ERROR!!!!!");
-            console.log({ artistId });
-            console.log(resp);
-            return NextResponse.json({ error: "error" }, { status: resp.status });
+        if (spotifyResponse.status >= 400) {
+            console.log(spotifyResponse);
+            const response: ErrorResponse = { error: "request error" };
+            return NextResponse.json(response, { status: spotifyResponse.status });
         }
 
-        const json: SpotifyArtistsResponse = await resp.json();
+        const json: SpotifyArtistsResponse = await spotifyResponse.json();
 
         json.artists.forEach((relatedArist) => {
             const artist: Artist = {
@@ -34,7 +33,7 @@ export async function GET(req: Request) {
         return NextResponse.json(artists);
     } catch (e) {
         console.log(e);
-        console.log("failure");
-        return NextResponse.json({ status: "error" });
+        const response: ErrorResponse = { error: "internal error" };
+        return NextResponse.json(response, { status: 500 });
     }
 }

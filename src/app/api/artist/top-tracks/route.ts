@@ -7,14 +7,13 @@ export async function GET(req: Request) {
         const artistId = searchParams.get("id");
         if (!artistId) return NextResponse.json({ error: "no id supplied" }, { status: 400 });
 
-        const resp = await getArtistTopTracks(artistId);
-        if (resp.status != 200) {
-            console.log("ERROR!!!!!");
-            console.log({ artistId });
-            console.log(resp);
-            return NextResponse.json({ error: "error" }, { status: resp.status });
+        const spotifyResponse = await getArtistTopTracks(artistId);
+        if (spotifyResponse.status >= 400) {
+            console.log(spotifyResponse);
+            const response: ErrorResponse = { error: "request error" };
+            return NextResponse.json(response, { status: spotifyResponse.status });
         }
-        const spotifyTracks: SpotifyTrackResponse = await resp.json();
+        const spotifyTracks: SpotifyTrackResponse = await spotifyResponse.json();
 
         const response: Track[] = spotifyTracks.tracks.map((spotifyTrack) => {
             const track: Track = {
@@ -35,7 +34,7 @@ export async function GET(req: Request) {
         return NextResponse.json(response);
     } catch (e) {
         console.log(e);
-        console.log("failure");
-        return NextResponse.json({ status: "error" });
+        const response: ErrorResponse = { error: "internal error" };
+        return NextResponse.json(response, { status: 500 });
     }
 }
