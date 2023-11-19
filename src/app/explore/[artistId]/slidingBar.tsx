@@ -3,7 +3,7 @@ import styles from "./slidingBar.module.scss";
 import { clamp } from "@/lib/mathUtils";
 
 interface SlidingBarProps {
-    children: ReactNode;
+    children?: ReactNode;
     fillPercent: number;
     disabled?: boolean;
     className?: string;

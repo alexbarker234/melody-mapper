@@ -10,6 +10,7 @@
         width: auto;
         aspect-ratio: 1/1;
         position: relative;
+
         img {
             position: absolute;
             width: auto;
@@ -17,7 +18,7 @@
             top: 50%;
             left: 50%;
             translate: -50% -50%;
-        } 
+        }
     }
 
     .track-details {
@@ -68,7 +69,7 @@
         left: 50%;
         translate: -50% -50%;
         width: 60%;
-    
+
         .current,
         .duration {
             position: absolute;
@@ -87,18 +88,29 @@
             margin-left: 0.5rem;
         }
     }
-    .volume-bar {
+
+    .right-controls {
         position: absolute;
         right: 2rem;
-        top: 50%;
-        translate: 0 -50%;   
-        width: 8rem;
-        .volume-icon {
-            font-size: 1.5rem;
-            position: absolute;
-            left: -2.5rem;
+        height: 100%;
+        display: flex;
+
+        .control-button {
+            position: relative;
             top: 50%;
             translate: 0 -50%;
+            margin-right: 0.75rem;
         }
-     }
+    }
+
+    .volume-button {
+        width: 30px;
+    }
+
+    .volume-bar {
+        position: relative;
+        top: 50%;
+        translate: 0 -50%;
+        width: 8rem;
+    }
 }

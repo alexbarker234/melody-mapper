@@ -1,9 +1,10 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import styles from "./player.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBackward, faForward, faPause, faPlay, faVolumeHigh, faVolumeLow, faVolumeMute, faVolumeOff } from "@fortawesome/free-solid-svg-icons";
+import { faBackward, faBars, faForward, faPause, faPlay, faVolumeHigh, faVolumeLow, faVolumeMute, faVolumeOff } from "@fortawesome/free-solid-svg-icons";
 import SlidingBar from "./slidingBar";
 import Image from "next/image";
+import IconButton from "@/components/IconButton";
 
 export type MusicPlayerRef = {
     addToQueue: (tracks: Track[]) => void;
@@ -134,15 +135,9 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
             </div>
             <div className={styles["controls"]}>
                 <div className={styles["buttons"]}>
-                    <button className="icon-button" onClick={_prevTrack} disabled={currentTrack == undefined}>
-                        <FontAwesomeIcon icon={faBackward} />
-                    </button>
-                    <button className="icon-button" onClick={playPauseHandler} disabled={currentTrack == undefined}>
-                        {isPlaying ? <FontAwesomeIcon icon={faPause} /> : <FontAwesomeIcon icon={faPlay} />}
-                    </button>
-                    <button className="icon-button" onClick={_nextTrack} disabled={currentTrack == undefined}>
-                        <FontAwesomeIcon icon={faForward} />
-                    </button>
+                    <IconButton className="icon-button" onClick={_prevTrack} disabled={currentTrack == undefined} icon={faBackward} />
+                    <IconButton className="icon-button" onClick={playPauseHandler} disabled={currentTrack == undefined} icon={isPlaying ? faPause : faPlay} />
+                    <IconButton className="icon-button" onClick={_nextTrack} disabled={currentTrack == undefined} icon={faForward} />
                 </div>
                 <SlidingBar
                     className={styles["progress-bar"]}
@@ -154,21 +149,32 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                     <div className={styles["current"]}>{Math.floor(currentTime)}s</div>
                     <div className={styles["duration"]}>{Math.floor(duration)}s</div>
                 </SlidingBar>
-                <SlidingBar
-                    className={styles["volume-bar"]}
-                    fillPercent={volume}
-                    onFillChange={(percentage: number) => audioRef.current && (audioRef.current.volume = percentage)}
-                >
-                    <button
-                        className={`icon-button ${styles["volume-icon"]}`}
+                <div className={styles["right-controls"]}>
+                    <IconButton
+                        className={`${styles["queue-button"]} ${styles["control-button"]}`}
+                        onClick={() => console.log("queue")}
+                        icon={faBars}
+                        hoverText="Queue"
+                    />
+                    <IconButton
+                        icon={muted ? faVolumeMute : volume > 0.5 ? faVolumeHigh : volume > 0 ? faVolumeLow : faVolumeOff}
+                        className={`${styles["volume-button"]} ${styles["control-button"]}`}
                         onClick={() => audioRef.current && (audioRef.current.muted = !audioRef.current.muted)}
-                    >
-                        <FontAwesomeIcon icon={muted ? faVolumeMute : volume > 0.5 ? faVolumeHigh : volume > 0 ? faVolumeLow : faVolumeOff} />
-                    </button>
-                </SlidingBar>
+                        hoverText="Mute"
+                    />
+                    <SlidingBar
+                        className={styles["volume-bar"]}
+                        fillPercent={volume}
+                        onFillChange={(percentage: number) => audioRef.current && (audioRef.current.volume = percentage)}
+                    />
+                </div>
             </div>
         </footer>
     );
 });
 
 export default MusicPlayer;
+
+const TrackQueue = () => {
+    return <></>;
+};

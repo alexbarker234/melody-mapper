@@ -1,0 +1,49 @@
+.button-container {
+    position: relative;
+    height: fit-content;
+    user-select: none;
+    .icon-button {
+        position: relative;
+        font-size: 1.5rem;
+        padding: 0;
+        height: fit-content;
+
+        background-color: unset;
+        border: none;
+        color: white;
+
+        transition: opacity 0.1s, scale 0.1s;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 0.8;
+            scale: 1.1;
+        }
+
+        &:active {
+            scale: 0.9;
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    }
+
+    .hover-text {
+        font-size: 1rem;
+        position: absolute;
+        left: 50%;
+        bottom: 100%;
+        transform: translate(-50%, -0.25rem);
+        background-color: var(--grey);
+        padding: 0.25rem;
+        border-radius: 4px;
+        opacity: 0;
+        transition: opacity 0.1s;
+        pointer-events: none;
+    }
+    .icon-button:hover ~ .hover-text {
+        opacity: 0.9;
+    }
+}
