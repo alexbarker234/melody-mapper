@@ -6,7 +6,7 @@ export default function Logo() {
     return (
         <Link href="/" className={styles["logo"]}>
             <Image src="/logo.png" width={100} height={100} alt="logo"></Image>
-            <span>Music Mapper</span>
+            <span>Melody Mapper</span>
         </Link>
     );
 }
