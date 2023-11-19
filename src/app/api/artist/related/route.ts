@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
         const resp = await getRelatedArtists(artistId);
 
-        if (resp.status != 200) {
+        if (resp.status >= 400) {
             console.log("ERROR!!!!!");
             console.log({ artistId });
             console.log(resp);

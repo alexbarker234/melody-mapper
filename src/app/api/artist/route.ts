@@ -8,7 +8,7 @@ export async function GET(req: Request) {
         if (!artistId) return NextResponse.json({ error: "no id supplied" }, { status: 400 });
 
         const resp = await getArtist(artistId);
-        if (resp.status != 200) {
+        if (resp.status >= 400) {
             console.log("ERROR!!!!!");
             console.log({ artistId });
             console.log(resp);
