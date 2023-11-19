@@ -4,14 +4,22 @@ import SearchBox from "@/components/searchBox";
 import styles from "./artistSearch.module.scss";
 import Loading from "./loading";
 import Image from "next/image";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export default function ArtistSearch() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
     const [artistList, setArtistList] = useState<Artist[]>([]);
     const [searchState, setState] = useState<"ok" | "searching" | "error">("ok");
 
     const search = async (searchText: string) => {
         if (searchState == "searching") return;
         setState("searching");
+
+        router.replace(`${pathname}?search=${searchText}`);
 
         // bug where token is fetched from cache first time
         let attempts = 0;
@@ -34,7 +42,7 @@ export default function ArtistSearch() {
 
     return (
         <>
-            <SearchBox runSearch={search} />
+            <SearchBox runSearch={search} startValue={searchParams.get('search') ?? ""}/>
             {searchState === "error" ? (
                 <div className={styles["error"]}>!</div>
             ) : (
@@ -58,9 +66,9 @@ function ArtistList({ items, isLoading }: { items: Artist[]; isLoading: boolean 
                 items.map((artist, index) => {
                     return (
                         <div key={Math.random()} className={styles["item-box"]} style={{ animationDelay: `${index * 0.05}s` }}>
-                            <a href={`/explore/${artist.id}`}>
-                                <Image src={artist.imageURL} alt="artist" width={640} height={640}/>
-                            </a>
+                            <Link href={`/explore/${artist.id}`} className={styles["artist-image"]} >
+                                {artist.imageURL && <Image src={artist.imageURL} alt="artist" width={640} height={640}/>}
+                            </Link>
                             <div>{artist.name}</div>
                         </div>
                     );

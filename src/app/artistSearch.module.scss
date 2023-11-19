@@ -15,7 +15,7 @@
     .item-box {
         margin: auto;
         margin-bottom: 0px;
-        padding-bottom: 4rem;
+        padding-bottom: 2rem;
 
         width: 12rem;
         height: 17rem;
@@ -32,11 +32,12 @@
         opacity: 0;
         animation: fade-drop-in 0.5s forwards;
 
-        img {
+        .artist-image {
             display: block;
-            width: 12rem;
-            height: 12rem;
-            object-fit: cover;
+
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1/1;
 
             cursor: pointer;
 
@@ -45,6 +46,14 @@
             user-select: none;
 
             background-color: pink;
+
+            overflow: hidden;
+            img {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1/1;
+                object-fit: cover;
+            }
 
             &:hover {
                 opacity: 0.5;

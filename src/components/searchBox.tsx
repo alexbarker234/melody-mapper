@@ -3,19 +3,24 @@
 import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
 import styles from "./searchBox.module.scss";
 
-export default function SearchBox({ runSearch }: { runSearch: (searchText: string) => void }) {
-    const [searchText, setSearchText] = useState("");
+interface SearchBoxProps {
+    runSearch: (searchText: string) => void
+    startValue?: string;
+}
+
+export default function SearchBox({ runSearch, startValue }: SearchBoxProps) {
+    const [searchText, setSearchText] = useState(startValue ?? "");
     const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setSearchText(event.target.value);
-
+        const toSearch = event.currentTarget.value;
+        setSearchText(toSearch);
         if (typingTimeout) clearTimeout(typingTimeout);
 
         setTypingTimeout(
             setTimeout(() => {
-                if (searchText.replaceAll(" ", "").length < 3) return;
-                runSearch(searchText);
+                if (toSearch.replaceAll(" ", "").length < 3) return;
+                runSearch(toSearch);
             }, 500)
         );
     };
@@ -26,6 +31,10 @@ export default function SearchBox({ runSearch }: { runSearch: (searchText: strin
             if (typingTimeout) clearTimeout(typingTimeout);
         }
     };
+
+    useEffect(() => {
+        if (startValue) runSearch(searchText);
+    }, [])
 
     useEffect(() => {
         return () => {
