@@ -2,7 +2,7 @@ import "./globals.scss";
 import Logo from "./logo";
 
 export const metadata = {
-    title: "Music Mapper",
+    title: "Melody Mapper",
     description: "Find artists related to all your favourites.",
 };
 
