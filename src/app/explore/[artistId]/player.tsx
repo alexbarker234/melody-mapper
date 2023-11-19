@@ -5,6 +5,7 @@ import { faBackward, faBars, faForward, faPause, faPlay, faVolumeHigh, faVolumeL
 import SlidingBar from "./slidingBar";
 import Image from "next/image";
 import IconButton from "@/components/IconButton";
+import TrackItem from "./trackItem";
 
 export type MusicPlayerRef = {
     addToQueue: (tracks: Track[]) => void;
@@ -14,11 +15,20 @@ export type MusicPlayerRef = {
     playTrack: (track: Track) => void;
 } | null;
 
-interface MusicPlayerProps extends React.HTMLAttributes<HTMLDivElement> {
-    trackList: Track[];
+export interface PlayerTrackDetails {
+    currentTrack: Track | undefined
+    previouslyPlayed: Track[]
+    queue: Track[]
 }
 
-const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, ...props }, ref) => {
+interface MusicPlayerProps extends React.HTMLAttributes<HTMLDivElement> {
+    trackList: Track[];
+    setPlayerTrackDetails?: (details : PlayerTrackDetails) => void;
+    queueOpen: boolean
+    setQueueOpen?: (value: boolean) => void;
+}
+
+const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, setPlayerTrackDetails, setQueueOpen, queueOpen, ...props }, ref) => {
     const audioRef = useRef<HTMLAudioElement>(null);
 
     const [queue, setQueue] = useState<Track[]>([]);
@@ -54,6 +64,11 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
             _prevTrack();
         });
     }, [currentTrack]);
+
+    // export track details
+    useEffect(() => {
+        if (setPlayerTrackDetails) setPlayerTrackDetails({ queue: queue, currentTrack: currentTrack, previouslyPlayed: previouslyPlayed });
+    }, [queue, currentTrack, previouslyPlayed])
 
     const playPauseHandler = () => {
         if (!audioRef.current) return;
@@ -108,6 +123,8 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
         nextTrack: _nextTrack,
         prevTrack: _prevTrack,
         playTrack: _playTrack,
+        queue: queue,
+        currentTrack: currentTrack
     }));
 
     return (
@@ -151,8 +168,8 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
                 </SlidingBar>
                 <div className={styles["right-controls"]}>
                     <IconButton
-                        className={`${styles["queue-button"]} ${styles["control-button"]}`}
-                        onClick={() => console.log("queue")}
+                        className={`${styles["queue-button"]} ${styles["control-button"]} ${queueOpen ? styles["highlighted"] : ""}`}
+                        onClick={() => setQueueOpen && setQueueOpen(!queueOpen)}
                         icon={faBars}
                         hoverText="Queue"
                     />
@@ -174,7 +191,3 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, .
 });
 
 export default MusicPlayer;
-
-const TrackQueue = () => {
-    return <></>;
-};

@@ -2,9 +2,10 @@
 import { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { ArtistNodeGraph } from "./graph";
 import styles from "./page.module.scss";
-import MusicPlayer, { MusicPlayerRef } from "./player";
+import MusicPlayer, { MusicPlayerRef, PlayerTrackDetails } from "./player";
 import Loading from "@/app/loading";
 import Image from "next/image";
+import TrackItem from "./trackItem";
 
 export default function ArtistExplorer({ params }: { params: { artistId: string } }) {
     // graph
@@ -14,8 +15,12 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
     const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
     const graphDivRef = useRef<HTMLDivElement>(null);
 
+    // side bar
+    const [sideBarScreen, setSideBarScreen] = useState<"artist" | "queue">("artist");
+
     // music player
     const musicPlayerRef = useRef<MusicPlayerRef>(null);
+    const [playerTrackDetails, setPlayerTrackDetails] = useState<PlayerTrackDetails>();
 
     // Only add artist data that isnt already in
     const addArtists = (artists: Artist[]) => {
@@ -49,11 +54,19 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
     }, [selectedArtistId]);
 
     const playSong = (track: Track, index: number) => {
-        if (!musicPlayerRef.current) return;
+        if (!musicPlayerRef.current ) return;
         musicPlayerRef.current.playTrack(track);
         musicPlayerRef.current.clearQueue();
         musicPlayerRef.current.addToQueue(trackList.slice(index + 1, trackList.length - 1));
     };
+    
+    const playSongFromQueue = (track: Track, index: number) => {
+        if (!musicPlayerRef.current || !playerTrackDetails) return;
+        musicPlayerRef.current.playTrack(track);
+        musicPlayerRef.current.clearQueue();
+        musicPlayerRef.current.addToQueue(playerTrackDetails.queue.slice(index + 1, playerTrackDetails.queue.length - 1));
+    };
+
 
     const selectedArtist = artistData[selectedArtistId];
     return (
@@ -70,29 +83,66 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                     />
                 </div>
                 <div className={styles["side-bar"]}>
-                    {selectedArtist && (
-                        <>
-                            <Image className={styles["artist-image"]} src={selectedArtist.imageURL} alt={selectedArtist.name} width={640} height={640} />
-                            <div className={styles["artist-title"]}>
-                                <a href={selectedArtist.link}>{selectedArtist.name}</a>
-                            </div>
-                            <div className={styles["tracks"]}>
-                                {trackList.length > 0 ? (
-                                    trackList.map((track, index) => (
-                                        <div key={track.id} className={styles["track-item"]} onDoubleClick={() => playSong(track, index)}>
-                                            <Image className={styles["track-image"]} src={track.imageURL} alt={track.name} width={640} height={640} />
-                                            <div className={styles["track-details"]}>{track.name}</div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <Loading style={{ marginTop: "2rem" }} />
-                                )}
-                            </div>
-                        </>
+                    {sideBarScreen == "artist" ? (
+                        <ArtistScreen artist={selectedArtist} trackList={trackList} playSong={playSong} />
+                    ) : (
+                        <QueueScreen queue={playerTrackDetails?.queue ?? []} currentTrack={playerTrackDetails?.currentTrack} playSong={playSongFromQueue} />
                     )}
                 </div>
             </div>
-            <MusicPlayer ref={musicPlayerRef} trackList={trackList} />
+            <MusicPlayer
+                ref={musicPlayerRef}
+                trackList={trackList}
+                setPlayerTrackDetails={setPlayerTrackDetails}
+                queueOpen={sideBarScreen == "queue"}
+                setQueueOpen={(value) =>  setSideBarScreen(value ? "queue" : 'artist')}
+            />
         </main>
     );
 }
+interface ArtistScreen {
+    artist: Artist;
+    trackList: Track[];
+    playSong: (track: Track, index: number) => void;
+}
+
+const ArtistScreen = ({ artist, trackList, playSong }: ArtistScreen) => {
+    if (!artist) return <Loading />;
+    return (
+        <>
+            <Image className={styles["artist-image"]} src={artist.imageURL} alt={artist.name} width={640} height={640} />
+            <div className={styles["artist-title"]}>
+                <a href={artist.link}>{artist.name}</a>
+            </div>
+            <div className={styles["tracks"]}>
+                {trackList.length > 0 ? (
+                    trackList.map((track, index) => <TrackItem key={index} onDoubleClick={() => playSong(track, index)} track={track} />)
+                ) : (
+                    <Loading style={{ marginTop: "2rem" }} />
+                )}
+            </div>
+        </>
+    );
+};
+
+interface QueueScreen {
+    currentTrack: Track | undefined;
+    queue: Track[];
+    playSong: (track: Track, index: number) => void;
+}
+
+const QueueScreen = ({ currentTrack, queue, playSong }: QueueScreen) => {
+    return (
+        <div className={styles["queue-screen"]}>
+            <h1>Queue</h1>
+            <h2>Now playing:</h2>
+            {currentTrack && <TrackItem key={currentTrack.id} onDoubleClick={() => console.log(currentTrack)} track={currentTrack} />}
+            <h2>Next up:</h2>
+            <div className={styles["queue"]}>
+                {queue.map((track, index) => (
+                    <TrackItem key={track.id} onDoubleClick={() => playSong(track, index)} track={track} />
+                ))}
+            </div>
+        </div>
+    );
+};
