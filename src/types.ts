@@ -14,10 +14,14 @@ interface Track {
     previewURL: string;
     album: {
         name: string;
-    }
+    };
     artist: {
         name: string;
-    }
+    };
+}
+
+interface ErrorResponse {
+    error: string;
 }
 
 // SPOTIFY
@@ -42,7 +46,7 @@ interface SpotifyArtistsResponse {
     artists: SpotifyArtist[];
 }
 interface SpotifySearchResponse {
-    artists: {items: SpotifyArtist[]};
+    artists: { items: SpotifyArtist[] };
 }
 interface SpotifyTrack {
     album: {
