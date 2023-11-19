@@ -1,0 +1,26 @@
+.logo {
+    position: absolute;
+    width: fit-content;
+    top: 0%;
+    left: 0%;
+    z-index: 1000;
+    display: flex;
+    margin: 0.25rem;
+    transition: scale 0.2s, opacity 0.2s;
+
+    img {
+        height: 2rem;
+        width: auto;
+        aspect-ratio: 1/1;
+        margin-right: 0.25rem;
+    }
+    span {
+        font-size: 1.5rem;
+        display: block;
+        height: 100%;
+        line-height: 2rem;
+    }
+    &:hover {
+        scale: 1.03;
+    }
+}

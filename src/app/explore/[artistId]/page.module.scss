@@ -1,0 +1,92 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+
+    .main-section {
+        height: calc(100% - 4rem);
+        position: relative;
+        display: flex;
+    }
+}
+
+.artist-explorer {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.side-bar {
+    position: relative;
+    border-left: 1px #92929c solid;
+    width: 70%;
+    height: 100%;
+    overflow: hidden;
+    overflow-y: scroll;
+
+    .artist-image {
+        margin: 1rem auto;
+        height: 80%;
+        max-height: 250px;
+        width: auto;
+        object-fit: cover;
+        aspect-ratio: 1/1;
+        display: block;
+    }
+
+    .artist-title {
+        width: fit-content;
+        margin: auto;
+        font-size: 2rem;
+    }
+
+    .tracks {
+        position: relative;
+    }
+}
+
+.queue-screen {
+
+    h1,
+    h2 {
+        margin-left: 0.5rem;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+        color: var(--light-grey)
+    }
+}
+
+// TODO: MOVE
+.track-item {
+    height: 4rem;
+    line-height: 4rem;
+    display: flex;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    img {
+        height: 100%;
+        width: auto;
+        margin-right: 1rem;
+        padding: 0.5rem;
+        aspect-ratio: 1/1;
+    }
+
+    .track-details {
+        width: 100%;
+
+        a {
+            display: block;
+            height: 100%;
+            width: 100%;
+        }
+    }
+}

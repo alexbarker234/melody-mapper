@@ -1,0 +1,130 @@
+.player {
+    position: relative;
+    height: 4rem;
+    background-color: var(--blue);
+
+    display: flex;
+
+    .img-container {
+        height: 100%;
+        width: auto;
+        aspect-ratio: 1/1;
+        position: relative;
+
+        img {
+            position: absolute;
+            width: auto;
+            height: 90%;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+        }
+    }
+
+    .track-details {
+        margin: 0.5rem;
+
+        .track-name {
+            font-weight: 600;
+        }
+
+        .artist-name {
+            opacity: 0.8;
+        }
+    }
+
+    .controls {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+
+        .buttons {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+
+            button {
+                position: relative;
+                font-size: 1.5rem;
+                width: 2rem;
+                height: 2rem;
+
+                svg {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    translate: -50% -50%;
+                }
+            }
+        }
+    }
+
+    .progress-bar {
+        position: absolute;
+        top: 65%;
+        left: 50%;
+        translate: -50% -50%;
+        width: 60%;
+
+        .current,
+        .duration {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .current {
+            right: 100%;
+            margin-right: 0.5rem;
+        }
+
+        .duration {
+            left: 100%;
+            margin-left: 0.5rem;
+        }
+    }
+
+    .right-controls {
+        position: absolute;
+        right: 2rem;
+        height: 100%;
+        display: flex;
+
+        .control-button {
+            position: relative;
+            top: 50%;
+            translate: 0 -50%;
+            margin-right: 0.75rem;
+            &.highlighted {
+                color: pink;
+                &::after {
+                    content: "";
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 4px;
+                    height: 4px;
+                    border-radius: 4px;
+                    background-color: pink;
+                }
+            }
+        }
+    }
+
+    .volume-button {
+        width: 30px;
+    }
+
+    .volume-bar {
+        position: relative;
+        top: 50%;
+        translate: 0 -50%;
+        width: 8rem;
+    }
+}
