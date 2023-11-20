@@ -6,7 +6,7 @@
     display: grid;
     justify-content: center;
     align-items: center;
-    grid-template-columns: repeat(auto-fit, minmax(13rem, 2fr));
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 2fr));
 
     .placeholder {
         text-align: center;
@@ -17,8 +17,8 @@
         margin-bottom: 0px;
         padding-bottom: 2rem;
 
-        width: 12rem;
-        height: 17rem;
+        width: 11rem;
+        height: 16rem;
 
         position: relative;
 

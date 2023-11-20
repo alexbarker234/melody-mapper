@@ -2,7 +2,7 @@
 import { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { ArtistNodeGraph } from "./graph";
 import styles from "./page.module.scss";
-import MusicPlayer, { MusicPlayerRef, PlayerTrackDetails } from "./player";
+import MusicPlayer, { MusicPlayerRef, PlayerState } from "./player";
 import Loading from "@/app/loading";
 import Image from "next/image";
 import TrackItem from "./trackItem";
@@ -20,7 +20,7 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
 
     // music player
     const musicPlayerRef = useRef<MusicPlayerRef>(null);
-    const [playerTrackDetails, setPlayerTrackDetails] = useState<PlayerTrackDetails>();
+    const [playerTrackDetails, setPlayerTrackDetails] = useState<PlayerState>();
 
     // Only add artist data that isnt already in
     const addArtists = (artists: Artist[]) => {
@@ -136,7 +136,7 @@ const QueueScreen = ({ currentTrack, queue, playSong }: QueueScreen) => {
         <div className={styles["queue-screen"]}>
             <h1>Queue</h1>
             <h2>Now playing:</h2>
-            {currentTrack && <TrackItem key={currentTrack.id} onDoubleClick={() => console.log(currentTrack)} track={currentTrack} />}
+            {currentTrack && <TrackItem key={currentTrack.id} track={currentTrack} />}
             <h2>Next up:</h2>
             <div className={styles["queue"]}>
                 {queue.map((track, index) => (

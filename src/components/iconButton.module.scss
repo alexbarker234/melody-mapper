@@ -1,5 +1,6 @@
 .button-container {
     position: relative;
+    width: fit-content;
     height: fit-content;
     user-select: none;
     color: white;
@@ -28,6 +29,7 @@
         &:disabled {
             opacity: 0.6;
             pointer-events: none;
+            cursor: unset;
         }
     }
 

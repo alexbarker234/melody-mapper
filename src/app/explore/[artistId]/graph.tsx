@@ -111,7 +111,6 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
                 if (!link || !link.source || !link.target) return;
                 const a = newData.nodes.find((n) => n.id == artistLink.source) as ArtistNodeObject;
                 const b = newData.nodes.find((n) => n.id == artistLink.target) as ArtistNodeObject;
-                console.log(a, b)
                 if (!a || !b) return;
 
                 !a.links && (a.links = []);

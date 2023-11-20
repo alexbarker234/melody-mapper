@@ -1,3 +1,4 @@
+"use client"
 import { ReactNode, useEffect, useRef, useState } from "react";
 import styles from "./slidingBar.module.scss";
 import { clamp } from "@/lib/mathUtils";
@@ -6,13 +7,23 @@ interface SlidingBarProps {
     children?: ReactNode;
     fillPercent: number;
     disabled?: boolean;
+    interactable?: boolean;
     className?: string;
     onFillChange?: (percent: number) => void;
     onSlideStart?: () => void;
     onSlideEnd?: () => void;
 }
 
-const SlidingBar = ({ children, disabled, fillPercent: progressPercent, className, onSlideStart, onSlideEnd, onFillChange }: SlidingBarProps) => {
+const SlidingBar = ({
+    children,
+    disabled,
+    fillPercent: progressPercent,
+    className,
+    interactable = true,
+    onSlideStart,
+    onSlideEnd,
+    onFillChange,
+}: SlidingBarProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const progressRef = useRef<HTMLDivElement>(null);
 
@@ -22,7 +33,7 @@ const SlidingBar = ({ children, disabled, fillPercent: progressPercent, classNam
             if (isDragging && progressRef.current) {
                 const clickX = event.clientX - progressRef.current.getBoundingClientRect().left;
                 const elementWidth = progressRef.current.offsetWidth;
-                const percentage = clamp(clickX / elementWidth, 0 , 1);
+                const percentage = clamp(clickX / elementWidth, 0, 1);
                 if (onFillChange) onFillChange(percentage);
             }
         };
@@ -51,13 +62,13 @@ const SlidingBar = ({ children, disabled, fillPercent: progressPercent, classNam
         if (!progressRef.current) return;
         const clickX = event.clientX - progressRef.current.getBoundingClientRect().left;
         const elementWidth = progressRef.current.offsetWidth;
-        const percentage = clamp(clickX / elementWidth,0 , 1);
+        const percentage = clamp(clickX / elementWidth, 0, 1);
         if (onFillChange) onFillChange(percentage);
         if (onSlideEnd) onSlideEnd();
     };
 
     return (
-        <div className={`${styles["sliding-bar"]} ${disabled ? styles["disabled"] : ""} ${className ?? ""}` } ref={progressRef}>
+        <div className={`${styles["sliding-bar"]} ${disabled ? styles["disabled"] : ""} ${className ?? ""}`} ref={progressRef}>
             <div
                 className={styles["sliding-bar-inner"]}
                 style={{
@@ -65,14 +76,16 @@ const SlidingBar = ({ children, disabled, fillPercent: progressPercent, classNam
                 }}
             />
 
-            <div
-                className={styles["sliding-bar-clickable"]}
-                onMouseDown={() => {
-                    setIsDragging(true);
-                    if (onSlideStart) onSlideStart();
-                }}
-                onClick={handleSeek}
-            />
+            {interactable && (
+                <div
+                    className={styles["sliding-bar-clickable"]}
+                    onMouseDown={() => {
+                        setIsDragging(true);
+                        if (onSlideStart) onSlideStart();
+                    }}
+                    onClick={handleSeek}
+                />
+            )}
             <div
                 className={styles["ball"]}
                 style={{

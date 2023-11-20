@@ -1,11 +1,21 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+"use client";
+import { RefObject, SyntheticEvent, forwardRef, useEffect, useImperativeHandle, useReducer, useRef, useState } from "react";
 import styles from "./player.module.scss";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBackward, faBars, faForward, faPause, faPlay, faVolumeHigh, faVolumeLow, faVolumeMute, faVolumeOff } from "@fortawesome/free-solid-svg-icons";
+import {
+    faBackward,
+    faBars,
+    faChevronDown,
+    faForward,
+    faPause,
+    faPlay,
+    faVolumeHigh,
+    faVolumeLow,
+    faVolumeMute,
+    faVolumeOff,
+} from "@fortawesome/free-solid-svg-icons";
 import SlidingBar from "./slidingBar";
 import Image from "next/image";
 import IconButton from "@/components/IconButton";
-import TrackItem from "./trackItem";
 
 export type MusicPlayerRef = {
     addToQueue: (tracks: Track[]) => void;
@@ -15,35 +25,99 @@ export type MusicPlayerRef = {
     playTrack: (track: Track) => void;
 } | null;
 
-export interface PlayerTrackDetails {
-    currentTrack: Track | undefined
-    previouslyPlayed: Track[]
-    queue: Track[]
+export interface PlayerState {
+    queue: Track[];
+    previouslyPlayed: Track[];
+    currentTrack?: Track;
+    isPlaying: boolean;
+    currentTime: number;
+    duration: number;
+    volume: number;
+    muted: boolean;
 }
 
+type PlayerAction =
+    // QUEUE
+    | { type: "SET_QUEUE"; payload: Track[] }
+    | { type: "ADD_TO_QUEUE"; payload: Track[] }
+    | { type: "CLEAR_QUEUE" }
+    // PAUSE / PLAY
+    | { type: "PAUSE" }
+    | { type: "PLAY" }
+    // OTHER
+    | { type: "SET_PREVIOUSLY_PLAYED"; payload: Track[] }
+    | { type: "SET_CURRENT_TRACK"; payload: Track | undefined }
+    | { type: "SET_CURRENT_TIME"; payload: number }
+    | { type: "SET_DURATION"; payload: number }
+    | { type: "SET_VOLUME"; payload: number }
+    | { type: "SET_MUTED"; payload: boolean };
+
+function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
+    switch (action.type) {
+        // QUEUE
+        case "SET_QUEUE":
+            return { ...state, queue: action.payload };
+        case "ADD_TO_QUEUE":
+            return { ...state, queue: [...state.queue, ...action.payload] };
+        case "CLEAR_QUEUE":
+            return { ...state, queue: [] };
+        // PAUSE / PLAY
+        case "PAUSE":
+            return { ...state, isPlaying: false };
+        case "PLAY":
+            return { ...state, isPlaying: true };
+        // OTHER
+        case "SET_PREVIOUSLY_PLAYED":
+            return { ...state, previouslyPlayed: action.payload };
+        case "SET_CURRENT_TRACK":
+            return { ...state, currentTrack: action.payload };
+        case "SET_CURRENT_TIME":
+            return { ...state, currentTime: action.payload };
+        case "SET_DURATION":
+            return { ...state, duration: action.payload };
+        case "SET_VOLUME":
+            return { ...state, volume: action.payload };
+        case "SET_MUTED":
+            return { ...state, muted: action.payload };
+        default:
+            return state;
+    }
+}
+
+const initialPlayerState: PlayerState = {
+    queue: [],
+    previouslyPlayed: [],
+    currentTrack: undefined,
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+    volume: 1,
+    muted: false,
+};
 interface MusicPlayerProps extends React.HTMLAttributes<HTMLDivElement> {
     trackList: Track[];
-    setPlayerTrackDetails?: (details : PlayerTrackDetails) => void;
-    queueOpen: boolean
+    setPlayerTrackDetails?: (details: PlayerState) => void;
+    queueOpen: boolean;
     setQueueOpen?: (value: boolean) => void;
 }
-
 const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, setPlayerTrackDetails, setQueueOpen, queueOpen, ...props }, ref) => {
     const audioRef = useRef<HTMLAudioElement>(null);
+    const [playerState, dispatch] = useReducer(playerReducer, initialPlayerState);
+    const { queue, previouslyPlayed, currentTrack, isPlaying, currentTime, duration, volume, muted } = playerState;
 
-    const [queue, setQueue] = useState<Track[]>([]);
-    const [previouslyPlayed, setPreviouslyPlayed] = useState<Track[]>([]);
-    const [currentTrack, setCurrentTrack] = useState<Track>();
-    const [isPlaying, setIsPlaying] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [volume, setVolume] = useState(1);
-    const [muted, setMuted] = useState(false);
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 600);
+        handleResize()
+        window.addEventListener("resize", handleResize);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, []);
 
     // mediasession
     useEffect(() => {
-        // Set up Media Session API here
         if (!navigator.mediaSession || !currentTrack) return;
         navigator.mediaSession.metadata = new window.MediaMetadata({
             title: currentTrack.name,
@@ -51,80 +125,55 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, s
             album: currentTrack.album.name,
             artwork: [{ src: currentTrack.imageURL, sizes: "640x640", type: "image/png" }],
         });
-        navigator.mediaSession.setActionHandler("play", () => {
-            if (audioRef.current) audioRef.current.play();
-        });
-        navigator.mediaSession.setActionHandler("pause", () => {
-            if (audioRef.current) audioRef.current.pause();
-        });
-        navigator.mediaSession.setActionHandler("nexttrack", () => {
-            _nextTrack();
-        });
-        navigator.mediaSession.setActionHandler("previoustrack", () => {
-            _prevTrack();
-        });
+        navigator.mediaSession.setActionHandler("play", () => audioRef.current?.play());
+        navigator.mediaSession.setActionHandler("pause", () => audioRef.current?.pause());
+        navigator.mediaSession.setActionHandler("nexttrack", () => _nextTrack());
+        navigator.mediaSession.setActionHandler("previoustrack", () => _prevTrack());
     }, [currentTrack]);
 
     // export track details
     useEffect(() => {
-        if (setPlayerTrackDetails) setPlayerTrackDetails({ queue: queue, currentTrack: currentTrack, previouslyPlayed: previouslyPlayed });
-    }, [queue, currentTrack, previouslyPlayed])
+        if (setPlayerTrackDetails) setPlayerTrackDetails(playerState);
+    }, [playerState]);
 
-    const playPauseHandler = () => {
-        if (!audioRef.current) return;
+    const playPauseHandler = () => {audioRef.current?.[audioRef.current.paused ? "play" : "pause"]()};
 
-        if (isPlaying) {
-            audioRef.current.pause();
-        } else {
-            audioRef.current.play();
-        }
+    const timeUpdateHandler = (event: SyntheticEvent<HTMLAudioElement>) => {
+        dispatch({ type: "SET_CURRENT_TIME", payload: event.currentTarget.currentTime });
+        dispatch({ type: "SET_DURATION", payload: event.currentTarget.duration });
     };
-
-    const timeUpdateHandler = () => {
-        if (!audioRef.current) return;
-
-        setCurrentTime(audioRef.current.currentTime);
-        setDuration(audioRef.current.duration);
-    };
-
-    const endedHandler = () => {
-        if (!audioRef.current) return;
-        _nextTrack();
+    const volumeChangeHandler = (event: SyntheticEvent<HTMLAudioElement>) => {
+        dispatch({ type: "SET_VOLUME", payload: event.currentTarget.volume });
+        dispatch({ type: "SET_MUTED", payload: event.currentTarget.muted });
     };
 
     // In the handle
-    const _addTracksToQueue = (tracks: Track[]) => {
-        setQueue((prevQueue) => [...prevQueue, ...tracks]);
-    };
-    const _clearQueue = () => setQueue([]);
-
     const _nextTrack = () => {
         if (queue.length == 0) {
-            setCurrentTrack(undefined);
-            setIsPlaying(false);
+            dispatch({ type: "SET_CURRENT_TRACK", payload: undefined });
+            dispatch({ type: "PAUSE" });
+
             if (audioRef.current) audioRef.current.pause();
-            return;
+        } else {
+            const newQueue = [...queue];
+            newQueue.shift();
+            dispatch({ type: "SET_QUEUE", payload: newQueue });
+            dispatch({ type: "SET_CURRENT_TRACK", payload: queue[0] });
+            dispatch({ type: "PLAY" });
         }
-        const newQueue = [...queue];
-        newQueue.shift();
-        setQueue(newQueue);
-        setCurrentTrack(queue[0]);
-        setIsPlaying(true);
     };
     const _playTrack = (track: Track) => {
-        setCurrentTrack(track);
-        setIsPlaying(true);
+        dispatch({ type: "SET_CURRENT_TRACK", payload: track });
+        dispatch({ type: "PLAY" });
     };
     const _prevTrack = () => {};
 
     useImperativeHandle(ref, () => ({
-        addToQueue: _addTracksToQueue,
-        clearQueue: _clearQueue,
+        addToQueue: (tracks: Track[]) => dispatch({ type: "ADD_TO_QUEUE", payload: tracks }),
+        clearQueue: () => dispatch({ type: "CLEAR_QUEUE" }),
         nextTrack: _nextTrack,
         prevTrack: _prevTrack,
         playTrack: _playTrack,
-        queue: queue,
-        currentTrack: currentTrack
     }));
 
     return (
@@ -134,15 +183,54 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, s
                 src={currentTrack?.previewURL}
                 onTimeUpdate={timeUpdateHandler}
                 onTimeUpdateCapture={timeUpdateHandler}
-                onVolumeChange={(e) => {
-                    setVolume(e.currentTarget.volume);
-                    setMuted(e.currentTarget.muted);
-                }}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-                onEnded={endedHandler}
+                onVolumeChange={volumeChangeHandler}
+                onPlay={() => dispatch({ type: "PLAY" })}
+                onPause={() => dispatch({ type: "PAUSE" })}
+                onEnded={_nextTrack}
                 autoPlay={isPlaying}
             ></audio>
+            {isMobile ? (
+                <MobilePlayer
+                    playerState={playerState}
+                    audioRef={audioRef}
+                    queueOpen={queueOpen}
+                    playPauseHandler={playPauseHandler}
+                    nextTrack={_nextTrack}
+                    prevTrack={_prevTrack}
+                    setQueueOpen={setQueueOpen}
+                />
+            ) : (
+                <DesktopPlayer
+                    playerState={playerState}
+                    audioRef={audioRef}
+                    queueOpen={queueOpen}
+                    playPauseHandler={playPauseHandler}
+                    nextTrack={_nextTrack}
+                    prevTrack={_prevTrack}
+                    setQueueOpen={setQueueOpen}
+                />
+            )}
+        </footer>
+    );
+});
+
+export default MusicPlayer;
+
+// TODO: probably touch up on the practice here
+interface DevicePlayerProps {
+    playerState: PlayerState;
+    audioRef: RefObject<HTMLAudioElement>;
+    queueOpen: boolean;
+    setQueueOpen?: (value: boolean) => void;
+    playPauseHandler: () => void;
+    nextTrack: () => void;
+    prevTrack: () => void;
+}
+
+const DesktopPlayer = ({ playerState, audioRef, queueOpen, setQueueOpen, playPauseHandler, nextTrack, prevTrack }: DevicePlayerProps) => {
+    const { queue, previouslyPlayed, currentTrack, isPlaying, currentTime, duration, volume, muted } = playerState;
+    return (
+        <>
             <div className={styles["img-container"]}>
                 {currentTrack && <Image src={currentTrack.imageURL} alt={currentTrack.name} width={640} height={640} />}
             </div>
@@ -152,9 +240,9 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, s
             </div>
             <div className={styles["controls"]}>
                 <div className={styles["buttons"]}>
-                    <IconButton className="icon-button" onClick={_prevTrack} disabled={currentTrack == undefined} icon={faBackward} />
-                    <IconButton className="icon-button" onClick={playPauseHandler} disabled={currentTrack == undefined} icon={isPlaying ? faPause : faPlay} />
-                    <IconButton className="icon-button" onClick={_nextTrack} disabled={currentTrack == undefined} icon={faForward} />
+                    {/* <IconButton  onClick={prevTrack} disabled={currentTrack == undefined} icon={faBackward} /> */}
+                    <IconButton onClick={playPauseHandler} disabled={currentTrack == undefined} icon={isPlaying ? faPause : faPlay} />
+                    <IconButton onClick={nextTrack} disabled={currentTrack == undefined} icon={faForward} />
                 </div>
                 <SlidingBar
                     className={styles["progress-bar"]}
@@ -186,8 +274,61 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({ trackList, s
                     />
                 </div>
             </div>
-        </footer>
+        </>
     );
-});
+};
+const MobilePlayer = ({ playerState, audioRef, queueOpen, setQueueOpen, playPauseHandler, nextTrack, prevTrack }: DevicePlayerProps) => {
+    const { queue, previouslyPlayed, currentTrack, isPlaying, currentTime, duration, volume, muted } = playerState;
 
-export default MusicPlayer;
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    return (
+        <>
+            <div className={styles["mobile-click-manager"]} onClick={() => setMenuOpen(true)} />
+            <div className={styles["img-container"]}>
+                {currentTrack && <Image src={currentTrack.imageURL} alt={currentTrack.name} width={640} height={640} />}
+            </div>
+            <div className={styles["track-details"]}>
+                <div className={styles["track-name"]}>{currentTrack?.name}</div>
+                <div className={styles["artist-name"]}>{currentTrack?.artist.name}</div>
+            </div>
+            <div className={styles["controls"]}>
+                <SlidingBar
+                    className={`${styles["progress-bar"]} ${styles["mobile"]}`}
+                    fillPercent={duration > 0 ? currentTime / duration : 0}
+                    interactable={false}
+                ></SlidingBar>
+                <div className={styles["right-controls"]}>
+                    <IconButton
+                        className={`${styles["queue-button"]} ${styles["control-button"]} ${queueOpen ? styles["highlighted"] : ""}`}
+                        onClick={() => setQueueOpen && setQueueOpen(!queueOpen)}
+                        icon={faBars}
+                    />
+                    <IconButton
+                        className={styles["control-button"]}
+                        onClick={playPauseHandler}
+                        disabled={currentTrack == undefined}
+                        icon={isPlaying ? faPause : faPlay}
+                    />
+                </div>
+            </div>
+            <div className={`${styles["mobile-screen"]} ${menuOpen ? styles["open"] : ""}`}>
+                <IconButton className={styles["screen-close"]} onClick={() => setMenuOpen(false)} icon={faChevronDown} />
+                <div className={styles["img-container"]}>
+                    {currentTrack && <Image src={currentTrack.imageURL} alt={currentTrack.name} width={640} height={640} />}
+                </div>
+                <div className={styles["bottom-container"]}>
+                    <div className={styles["track-details"]}>
+                        <div className={styles["track-name"]}>{currentTrack?.name}</div>
+                        <div className={styles["artist-name"]}>{currentTrack?.artist.name}</div>
+                    </div>
+                    <div className={styles["buttons"]}>
+                        <IconButton onClick={prevTrack} disabled={currentTrack == undefined} icon={faBackward} />
+                        <IconButton onClick={playPauseHandler} disabled={currentTrack == undefined} icon={isPlaying ? faPause : faPlay} />
+                        <IconButton onClick={nextTrack} disabled={currentTrack == undefined} icon={faForward} />
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
