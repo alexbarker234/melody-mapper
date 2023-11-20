@@ -284,7 +284,7 @@ const MobilePlayer = ({ playerState, audioRef, queueOpen, setQueueOpen, playPaus
 
     return (
         <>
-            <div className={styles["mobile-click-manager"]} onClick={() => setMenuOpen(true)} />
+            <div className={styles["mobile-click-manager"]} onClick={() => currentTrack && setMenuOpen(true)} />
             <div className={styles["img-container"]}>
                 {currentTrack && <Image src={currentTrack.imageURL} alt={currentTrack.name} width={640} height={640} />}
             </div>

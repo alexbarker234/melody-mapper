@@ -5,6 +5,12 @@
 
     display: flex;
 
+
+    transition: translate 0.2s;
+    &.inactive {
+        translate: 0 100%;
+    }
+
     .img-container {
         height: 100%;
         width: auto;
@@ -206,6 +212,7 @@
             .buttons {
                 display: flex;
                 justify-content: center;
+                gap: 2rem;
                 font-size: 4rem;
                 margin: auto;
                 margin-top: 2rem;
@@ -213,7 +220,6 @@
                 div {
                     width: 4rem;
                     height: 4rem;
-                    margin: 0 2rem;
                     button {
                         width: 100%;
                         height: 100%;

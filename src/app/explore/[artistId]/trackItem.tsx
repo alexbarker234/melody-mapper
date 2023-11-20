@@ -4,12 +4,12 @@ import styles from "./trackItem.module.scss";
 
 interface TrackItemProps {
     track: Track;
-    onDoubleClick?: (event: React.MouseEvent) => void;
+    onClick?: (event: React.MouseEvent) => void;
 }
 
-export default function TrackItem({track, onDoubleClick} : TrackItemProps) {
+export default function TrackItem({track, onClick} : TrackItemProps) {
     return (
-        <div key={track.id} className={`${styles["track-item"]} ${onDoubleClick ? styles["interactable"]: ""}`} onDoubleClick={onDoubleClick}>
+        <div className={`${styles["track-item"]} ${onClick ? styles["interactable"]: ""}`} onClick={onClick}>
             <Image className={styles["track-image"]} src={track.imageURL} alt={track.name} width={640} height={640} draggable={false}/>
             <div className={styles["track-details"]}>{track.name}</div>
         </div>

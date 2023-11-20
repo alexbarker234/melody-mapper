@@ -6,6 +6,9 @@ import MusicPlayer, { MusicPlayerRef, PlayerState } from "./player";
 import Loading from "@/app/loading";
 import Image from "next/image";
 import TrackItem from "./trackItem";
+import IconButton from "@/components/IconButton";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function ArtistExplorer({ params }: { params: { artistId: string } }) {
     // graph
@@ -14,13 +17,24 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
     const [trackList, setTrackList] = useState<Track[]>([]);
     const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
     const graphDivRef = useRef<HTMLDivElement>(null);
-
     // side bar
     const [sideBarScreen, setSideBarScreen] = useState<"artist" | "queue">("artist");
-
     // music player
     const musicPlayerRef = useRef<MusicPlayerRef>(null);
     const [playerTrackDetails, setPlayerTrackDetails] = useState<PlayerState>();
+    // mobile
+    const [isMobile, setIsMobile] = useState(false);
+    const [isSideBarOpen, setSideBarOpen] = useState(false);
+
+    // update mobile
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 600);
+        handleResize();
+        window.addEventListener("resize", handleResize);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, []);
 
     // Only add artist data that isnt already in
     const addArtists = (artists: Artist[]) => {
@@ -29,17 +43,20 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
         setArtistData(newData);
     };
 
+    // Responsive graph
     useEffect(() => {
         const handleResize = () => {
             if (!graphDivRef.current) return;
             setDimensions({ width: graphDivRef.current.clientWidth, height: graphDivRef.current.clientHeight });
         };
         handleResize();
-        window.addEventListener("resize", handleResize);
+        graphDivRef.current?.addEventListener("resize", handleResize);
         return () => {
-            window.removeEventListener("resize", handleResize);
+            graphDivRef.current?.removeEventListener("resize", handleResize);
         };
-    }, []);
+    }, [graphDivRef]);
+
+    // On new artist selected
     useEffect(() => {
         const fetchData = async () => {
             const topTracksResp = await fetch(`/api/artist/top-tracks?id=${selectedArtistId}`);
@@ -49,24 +66,25 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
 
         if (selectedArtistId) {
             setTrackList([]);
+            setSideBarScreen("artist");
+            // setSideBarOpen(true);
             fetchData();
         }
     }, [selectedArtistId]);
 
     const playSong = (track: Track, index: number) => {
-        if (!musicPlayerRef.current ) return;
+        if (!musicPlayerRef.current) return;
         musicPlayerRef.current.playTrack(track);
         musicPlayerRef.current.clearQueue();
         musicPlayerRef.current.addToQueue(trackList.slice(index + 1, trackList.length - 1));
     };
-    
+
     const playSongFromQueue = (track: Track, index: number) => {
         if (!musicPlayerRef.current || !playerTrackDetails) return;
         musicPlayerRef.current.playTrack(track);
         musicPlayerRef.current.clearQueue();
         musicPlayerRef.current.addToQueue(playerTrackDetails.queue.slice(index + 1, playerTrackDetails.queue.length - 1));
     };
-
 
     const selectedArtist = artistData[selectedArtistId];
     return (
@@ -82,7 +100,16 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                         seedId={params.artistId}
                     />
                 </div>
-                <div className={styles["side-bar"]}>
+                {isMobile && (
+                    <div className={styles["mobile-top-title"]}>
+                        <button onClick={() => setSideBarOpen(true)}>
+                            <div className={styles["artist-title"]}>{selectedArtist?.name}</div>
+                            <FontAwesomeIcon className={styles["forward-button"]} icon={faChevronRight} />
+                        </button>
+                    </div>
+                )}
+                <div className={`${styles["side-bar"]} ${isSideBarOpen ? styles["focus"] : ""}`}>
+                    {isMobile && <IconButton className={styles["back-button"]} icon={faChevronLeft} onClick={() => setSideBarOpen(false)} />}
                     {sideBarScreen == "artist" ? (
                         <ArtistScreen artist={selectedArtist} trackList={trackList} playSong={playSong} />
                     ) : (
@@ -95,7 +122,10 @@ export default function ArtistExplorer({ params }: { params: { artistId: string 
                 trackList={trackList}
                 setPlayerTrackDetails={setPlayerTrackDetails}
                 queueOpen={sideBarScreen == "queue"}
-                setQueueOpen={(value) =>  setSideBarScreen(value ? "queue" : 'artist')}
+                setQueueOpen={(value) => {
+                    setSideBarScreen(value ? "queue" : "artist");
+                    setSideBarOpen(true);
+                }}
             />
         </main>
     );
@@ -116,7 +146,7 @@ const ArtistScreen = ({ artist, trackList, playSong }: ArtistScreen) => {
             </div>
             <div className={styles["tracks"]}>
                 {trackList.length > 0 ? (
-                    trackList.map((track, index) => <TrackItem key={index} onDoubleClick={() => playSong(track, index)} track={track} />)
+                    trackList.map((track, index) => <TrackItem key={track.id} onClick={() => playSong(track, index)} track={track} />)
                 ) : (
                     <Loading style={{ marginTop: "2rem" }} />
                 )}
@@ -140,7 +170,7 @@ const QueueScreen = ({ currentTrack, queue, playSong }: QueueScreen) => {
             <h2>Next up:</h2>
             <div className={styles["queue"]}>
                 {queue.map((track, index) => (
-                    <TrackItem key={track.id} onDoubleClick={() => playSong(track, index)} track={track} />
+                    <TrackItem key={track.id} onClick={() => playSong(track, index)} track={track} />
                 ))}
             </div>
         </div>
