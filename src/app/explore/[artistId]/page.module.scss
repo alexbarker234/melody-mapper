@@ -60,36 +60,27 @@
     }
 }
 
-// TODO: MOVE
-.track-item {
-    height: 4rem;
-    line-height: 4rem;
-    display: flex;
-    transition: background-color 0.2s;
-    user-select: none;
-
-    &.interactable {
-        cursor: pointer;
-        &:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+@media only screen and (max-width: 800px) {
+    .page {
+        .main-section {
+            height: calc(100% - 4rem);
+            position: relative;
+            display: flex;
+            flex-direction: column;
         }
-    }
-
-    img {
-        height: 100%;
-        width: auto;
-        margin-right: 1rem;
-        padding: 0.5rem;
-        aspect-ratio: 1/1;
-    }
-
-    .track-details {
-        width: 100%;
-
-        a {
-            display: block;
-            height: 100%;
+        .side-bar {
             width: 100%;
+            border-left: none;
+            border-top: 1px #92929c solid;
+            .artist-image {
+                margin: 1rem auto;
+                height: 40%;
+                max-height: 250px;
+                width: auto;
+                object-fit: cover;
+                aspect-ratio: 1/1;
+                display: block;
+            }
         }
     }
 }

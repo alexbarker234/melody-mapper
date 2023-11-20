@@ -17,14 +17,17 @@
         transition: opacity 0.1s, scale 0.1s;
         cursor: pointer;
 
-        &:hover {
-            opacity: 0.8;
-            scale: 1.1;
+        &:enabled {
+            &:hover {
+                opacity: 0.8;
+                scale: 1.1;
+            }
+    
+            &:active {
+                scale: 0.9;
+            }
         }
 
-        &:active {
-            scale: 0.9;
-        }
 
         &:disabled {
             opacity: 0.6;

@@ -1,0 +1,30 @@
+.track-item {
+    position: relative;
+    height: 4rem;
+    display: flex;
+    transition: background-color 0.2s;
+    user-select: none;
+
+    &.interactable {
+        cursor: pointer;
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    img {
+        height: 100%;
+        width: auto;
+        margin-right: 1rem;
+        padding: 0.5rem;
+        aspect-ratio: 1/1;
+    }
+
+    .track-details {
+        position: relative;
+        width: 100%;
+        top: 50%;
+        translate: 0 -50%;
+        height: fit-content;
+    }
+}

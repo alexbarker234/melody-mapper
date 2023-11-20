@@ -1,6 +1,6 @@
 "use client"
 import Image from "next/image";
-import styles from "./page.module.scss";
+import styles from "./trackItem.module.scss";
 
 interface TrackItemProps {
     track: Track;
