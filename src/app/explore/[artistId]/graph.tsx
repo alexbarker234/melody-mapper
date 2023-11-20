@@ -5,6 +5,7 @@ import { forceCollide, forceManyBody } from "d3-force";
 import "./graphOverrides.scss";
 
 import dynamic from "next/dynamic";
+import Loading from "@/app/loading";
 const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
     ssr: false,
 });
@@ -164,6 +165,7 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
 
     return (
         <>
+            {!data && <Loading style={{top: '50%'}}/> }
             <ForceGraph
                 forceRef={fgRef}
                 width={width}

@@ -137,7 +137,7 @@ interface ArtistScreen {
 }
 
 const ArtistScreen = ({ artist, trackList, playSong }: ArtistScreen) => {
-    if (!artist) return <Loading />;
+    if (!artist) return <Loading style={{top: '50%'}}/>;
     return (
         <>
             <Image className={styles["artist-image"]} src={artist.imageURL} alt={artist.name} width={640} height={640} />
