@@ -9,9 +9,9 @@ const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
     ssr: false,
 });
 
-interface ArtistNodeObject  {
+interface ArtistNodeObject {
     artist: Artist;
-    links: ArtistLinkObject[]
+    links: ArtistLinkObject[];
     id: string;
     x?: number;
     y?: number;
@@ -20,11 +20,10 @@ interface ArtistNodeObject  {
     fx?: number;
     fy?: number;
 }
-interface ArtistLinkObject extends LinkObject  {
+interface ArtistLinkObject extends LinkObject {
     source: string;
     target: string;
 }
-
 
 interface ArtistNodeGraphProps {
     selectedArtist: Artist;
@@ -64,8 +63,13 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
                 artistNodes.push(artistNode);
             });
 
-            const links: ArtistLinkObject[] = artistNodes.map((n) => ({ source: seedNode.id, target: n.id }))
-            const nodes: ArtistNodeObject[] = artistNodes.map((artist) => ({ id: artist.id, name: artist.name, artist: artist, links: links.filter((l) => l.source == artist.id ||  l.target == artist.id) }))
+            const links: ArtistLinkObject[] = artistNodes.map((n) => ({ source: seedNode.id, target: n.id }));
+            const nodes: ArtistNodeObject[] = artistNodes.map((artist) => ({
+                id: artist.id,
+                name: artist.name,
+                artist: artist,
+                links: links.filter((l) => l.source == artist.id || l.target == artist.id),
+            }));
 
             setData({ nodes, links });
             addArtistData(artistNodes);
@@ -84,7 +88,7 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
     }, [fgRef.current]);
 
     const getMoreArtists = async (node: NodeObject) => {
-        const artistNode = node as ArtistNodeObject
+        const artistNode = node as ArtistNodeObject;
 
         if (!data) return;
         const artistId = artistNode.id;
@@ -92,6 +96,17 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
         const relatedNodesResp = await fetch(`/api/artist/related?id=${artistId}`);
         if (relatedNodesResp.status != 200) return console.log("related error");
         const relatedNodes: Artist[] = await relatedNodesResp.json();
+
+        // focus on node while moving
+        let elapsedTime = 0;
+        const interval = 5;
+        const duration = 250;
+        const intervalId = setInterval(() => {
+            fgRef.current?.centerAt(artistNode.x, artistNode.y, 500);
+
+            elapsedTime += interval;
+            if (elapsedTime >= duration) clearInterval(intervalId);
+        }, interval);
 
         setData((prevData) => {
             const { nodes, links } = prevData as GraphData;
@@ -101,10 +116,10 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
                     ...nodes,
                     ...relatedNodes
                         .filter((newArtist) => !nodes.some((n) => n.id === newArtist.id))
-                        .map((newArtist) => ({ id: newArtist.id, name: newArtist.name, artist: newArtist, x: artistNode.x, y: artistNode.y, links: []})),
+                        .map((newArtist) => ({ id: newArtist.id, name: newArtist.name, artist: newArtist, x: artistNode.x, y: artistNode.y, links: [] })),
                 ],
                 links: [...links, ...relatedNodes.map((newArtist) => ({ source: artistId, target: newArtist.id }))],
-            }
+            };
 
             newData.links.forEach((link) => {
                 const artistLink = link as ArtistLinkObject;
@@ -124,7 +139,7 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
     };
 
     const handleClick = (node: NodeObject) => {
-        const artistNode = node as ArtistNodeObject
+        const artistNode = node as ArtistNodeObject;
         if (!artistNode.id || !artistNode.x || !artistNode.y || !fgRef.current) return;
         const artistId = artistNode.id as string;
 
@@ -135,7 +150,7 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
         setSelectedArtist(artistId);
     };
     const handleHover = (node: NodeObject | null, previousNode: NodeObject | null) => {
-        highlightedLinks.current = []
+        highlightedLinks.current = [];
         hoverNode.current = "";
         if (!node || !node.x || !node.y || !fgRef.current) return;
         hoverNode.current = (node.id ?? "") as string;
