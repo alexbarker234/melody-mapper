@@ -78,15 +78,15 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
 
         fetchData();
     }, []);
+    // detect dynamic import load 
     useEffect(() => {
-        // ref changes each rerender...
         if (fgRef.current && prevfgRef.current == undefined) {
             fgRef.current.d3Force("charge", forceManyBody().strength(-16));
             fgRef.current.d3Force("collide", forceCollide(6));
             fgRef.current.zoom(5);
         }
         prevfgRef.current = fgRef.current;
-    }, [fgRef.current]);
+    });
 
     const getMoreArtists = async (node: NodeObject) => {
         const artistNode = node as ArtistNodeObject;
@@ -161,7 +161,6 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
 
     const nodeSize = 10;
     const outlineWidth = 1.5;
-    const fontSize = 5;
 
     return (
         <>
