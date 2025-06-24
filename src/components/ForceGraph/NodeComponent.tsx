@@ -68,7 +68,7 @@ export default function NodeComponent({
         height={nodeSize}
         x={-nodeSize / 2}
         y={-nodeSize / 2}
-        href={node.imageUrl}
+        href={node.imageUrl ? node.imageUrl : undefined}
         preserveAspectRatio="xMidYMid slice"
       />
     </g>
