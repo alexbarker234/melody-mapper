@@ -86,6 +86,8 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
           links: []
         }));
 
+      console.log(`Adding ${newNodes.length} nodes related to ${artistNode.name}`);
+
       return [...prevNodes, ...newNodes];
     });
 
@@ -104,6 +106,8 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
                 (existingLink.target as Node).id === newLink.source)
           )
       );
+
+      console.log(`Adding ${newLinks.length} links related to ${artistNode.name}`);
 
       return [...prevLinks, ...newLinks];
     });

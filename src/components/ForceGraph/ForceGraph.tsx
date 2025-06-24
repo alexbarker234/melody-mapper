@@ -121,6 +121,7 @@ export default function ForceGraph({
 
     simulation.on("tick", () => {
       onNodesChange([...nodes]);
+      onLinksChange([...links]);
     });
 
     return () => {

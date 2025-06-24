@@ -68,7 +68,7 @@ export default function NodeComponent({
         height={nodeSize}
         x={-nodeSize / 2}
         y={-nodeSize / 2}
-        href={node.imageUrl || "https://via.placeholder.com/32/cccccc/ffffff?text=?"}
+        href={node.imageUrl}
         preserveAspectRatio="xMidYMid slice"
       />
     </g>
