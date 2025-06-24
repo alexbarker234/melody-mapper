@@ -18,6 +18,8 @@ interface ForceGraphProps {
   onNodeHover?: (node: Node | null) => void;
   width?: number;
   height?: number;
+  hideLabels?: boolean;
+  nodeSize?: number;
 }
 
 export default function ForceGraph({
@@ -28,7 +30,9 @@ export default function ForceGraph({
   onNodeClick,
   onNodeHover,
   width = 600,
-  height = 400
+  height = 400,
+  hideLabels = false,
+  nodeSize = 20
 }: ForceGraphProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const simulationRef = useRef<d3.Simulation<Node, undefined> | null>(null);
@@ -107,7 +111,7 @@ export default function ForceGraph({
           .distance(80)
       )
       .force("charge", d3.forceManyBody().strength(-16))
-      .force("collide", d3.forceCollide(6))
+      .force("collide", d3.forceCollide(nodeSize / 2))
       .alphaDecay(0.01)
       .velocityDecay(0.7)
       .force("center", d3.forceCenter(width / 2, height / 2));
@@ -150,6 +154,7 @@ export default function ForceGraph({
             <NodeComponent
               key={node.id}
               node={node}
+              nodeSize={nodeSize}
               onMouseOver={handleNodeMouseOver}
               onMouseOut={handleNodeMouseOut}
               onClick={handleNodeClick}
@@ -159,9 +164,7 @@ export default function ForceGraph({
             />
           ))}
 
-          {nodes.map((node) => (
-            <ForceGraphLabel key={`label-${node.id}`} node={node} />
-          ))}
+          {!hideLabels && nodes.map((node) => <ForceGraphLabel key={`label-${node.id}`} node={node} />)}
         </g>
       </svg>
 

@@ -160,6 +160,8 @@ export const ArtistNodeGraph = ({
         onNodeHover={handleNodeHover}
         width={width}
         height={height}
+        hideLabels={true}
+        nodeSize={20}
       />
     </div>
   );

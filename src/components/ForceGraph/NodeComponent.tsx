@@ -5,6 +5,7 @@ import { Node } from "./types";
 
 interface NodeComponentProps {
   node: Node;
+  nodeSize?: number;
   onMouseOver: (event: React.MouseEvent, node: Node) => void;
   onMouseOut: () => void;
   onClick?: (event: React.MouseEvent, node: Node) => void;
@@ -15,6 +16,7 @@ interface NodeComponentProps {
 
 export default function NodeComponent({
   node,
+  nodeSize = 20,
   onMouseOver,
   onMouseOut,
   onClick,
@@ -23,7 +25,6 @@ export default function NodeComponent({
   onDragEnd
 }: NodeComponentProps) {
   const nodeRef = useRef<SVGGElement>(null);
-  const nodeSize = 20;
 
   useEffect(() => {
     if (nodeRef.current) {
