@@ -1,12 +1,12 @@
 "use client";
+import Loading from "@/app/loading";
+import { Artist } from "@/types/types";
 import { forceCollide, forceManyBody } from "d3-force";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { ForceGraphMethods, GraphData, LinkObject, NodeObject } from "react-force-graph-2d";
 import "./graphOverrides.scss";
 
-import Loading from "@/app/loading";
-import { Artist } from "@/types/types";
-import dynamic from "next/dynamic";
 const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
   ssr: false
 });
@@ -28,7 +28,7 @@ interface ArtistLinkObject extends LinkObject {
 }
 
 interface ArtistNodeGraphProps {
-  selectedArtist: Artist;
+  selectedArtist?: Artist;
   setSelectedArtist: (artistId: string) => void;
   addArtistData: (data: Artist[]) => void;
   width: number;
@@ -45,9 +45,9 @@ export const ArtistNodeGraph = ({
   seedId
 }: ArtistNodeGraphProps) => {
   const fgRef = useRef<ForceGraphMethods>(undefined);
-  const prevfgRef = useRef<ForceGraphMethods>(undefined);
 
   const [data, setData] = useState<GraphData>();
+  const [isGraphInitialized, setIsGraphInitialized] = useState(false);
   const hoverNode = useRef<string>("");
   const fetchedArtists = useRef<string[]>([]);
 
@@ -65,7 +65,7 @@ export const ArtistNodeGraph = ({
       artistNodes.push(seedNode);
       fetchedArtists.current.push(seed);
 
-      const relatedNodesResp = await fetch(`/api/artist/related?id=${seed}`);
+      const relatedNodesResp = await fetch(`/api/artist/related?artistName=${seedNode.name}`);
       if (relatedNodesResp.status != 200) return console.log("related error");
       const relatedNodes: Artist[] = await relatedNodesResp.json();
       relatedNodes.forEach((artistNode) => {
@@ -85,16 +85,17 @@ export const ArtistNodeGraph = ({
     };
 
     fetchData();
-  }, []);
+  }, [seedId]);
+
   // detect dynamic import load
   useEffect(() => {
-    if (fgRef.current && prevfgRef.current == undefined) {
+    if (fgRef.current && !isGraphInitialized) {
       fgRef.current.d3Force("charge", forceManyBody().strength(-16));
       fgRef.current.d3Force("collide", forceCollide(6));
       fgRef.current.zoom(5);
+      setIsGraphInitialized(true);
     }
-    prevfgRef.current = fgRef.current;
-  });
+  }, [isGraphInitialized]);
 
   const getMoreArtists = async (node: NodeObject) => {
     const artistNode = node as ArtistNodeObject;
@@ -162,7 +163,7 @@ export const ArtistNodeGraph = ({
     const transitionMS = 500;
     fgRef.current.centerAt(artistNode.x, artistNode.y, transitionMS);
     fgRef.current.zoom(10, transitionMS);
-    if (selectedArtist.id == artistNode.id && !fetchedArtists.current.includes(artistId)) getMoreArtists(artistNode);
+    if (selectedArtist?.id == artistNode.id && !fetchedArtists.current.includes(artistId)) getMoreArtists(artistNode);
     setSelectedArtist(artistId);
   };
   const handleHover = (node: NodeObject | null, previousNode: NodeObject | null) => {
@@ -177,9 +178,10 @@ export const ArtistNodeGraph = ({
   const nodeSize = 10;
   const outlineWidth = 1.5;
 
+  if (!data) return <Loading style={{ top: "50%" }} />;
+
   return (
     <>
-      {!data && <Loading style={{ top: "50%" }} />}
       <ForceGraph
         forceRef={fgRef}
         width={width}
@@ -192,7 +194,7 @@ export const ArtistNodeGraph = ({
           const artistNode = node as ArtistNodeObject;
           if (!artistNode.x || !artistNode.y) return;
 
-          if (artistNode.id == hoverNode.current || artistNode.id == selectedArtist.id) {
+          if (artistNode.id == hoverNode.current || artistNode.id == selectedArtist?.id) {
             // Draw outline
             ctx.beginPath();
             ctx.roundRect(

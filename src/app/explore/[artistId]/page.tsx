@@ -14,7 +14,7 @@ export default function ArtistExplorer(props: { params: Promise<{ artistId: stri
   const params = use(props.params);
   // graph
   const [artistData, setArtistData] = useState<{ [key: string]: Artist }>({});
-  const [selectedArtistId, setSelectedArtist] = useState<string>(params.artistId);
+  const [selectedArtistId, setSelectedArtistId] = useState<string>(params.artistId);
   const [trackList, setTrackList] = useState<Track[]>([]);
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const graphDivRef = useRef<HTMLDivElement>(null);
@@ -64,7 +64,7 @@ export default function ArtistExplorer(props: { params: Promise<{ artistId: stri
       const topTracks: Track[] = await topTracksResp.json();
       setTrackList(topTracks);
     };
-
+    console.log(`querying ${selectedArtistId}`);
     if (selectedArtistId) {
       setTrackList([]);
       setSideBarScreen("artist");
@@ -88,13 +88,14 @@ export default function ArtistExplorer(props: { params: Promise<{ artistId: stri
   };
 
   const selectedArtist = artistData[selectedArtistId];
+  console.log(selectedArtist);
   return (
     <main className={styles["page"]}>
       <div className={styles["main-section"]}>
         <div ref={graphDivRef} className={styles["artist-explorer"]}>
           <ArtistNodeGraph
             selectedArtist={selectedArtist}
-            setSelectedArtist={setSelectedArtist}
+            setSelectedArtist={setSelectedArtistId}
             addArtistData={addArtists}
             width={dimensions.width}
             height={dimensions.height}
