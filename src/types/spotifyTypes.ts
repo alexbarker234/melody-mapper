@@ -1,38 +1,11 @@
-interface Artist {
-    id: string;
-    name: string;
-    popularity: number;
-    imageURL: string;
-    link: string;
-}
 
-interface Track {
-    id: string;
-    name: string;
-    link: string;
-    imageURL: string;
-    previewURL: string;
-    album: {
-        name: string;
-    };
-    artist: {
-        name: string;
-    };
-}
-
-interface ErrorResponse {
-    error: string;
-}
-
-// SPOTIFY
-
-interface SpotifyImage {
+export interface SpotifyImage {
     height: number | null;
     width: number | null;
     url: string;
 }
 
-interface SpotifyArtist {
+export interface SpotifyArtist {
     id: string;
     name: string;
     popularity: number;
@@ -42,13 +15,16 @@ interface SpotifyArtist {
         spotify: string;
     };
 }
-interface SpotifyArtistsResponse {
+
+export interface SpotifyArtistsResponse {
     artists: SpotifyArtist[];
 }
-interface SpotifySearchResponse {
+
+export interface SpotifySearchResponse {
     artists: { items: SpotifyArtist[] };
 }
-interface SpotifyTrack {
+
+export interface SpotifyTrack {
     album: {
         album_type: string;
         total_tracks: number;
@@ -123,6 +99,6 @@ interface SpotifyTrack {
     is_local: boolean;
 }
 
-interface SpotifyTrackResponse {
+export interface SpotifyTrackResponse {
     tracks: SpotifyTrack[];
 }

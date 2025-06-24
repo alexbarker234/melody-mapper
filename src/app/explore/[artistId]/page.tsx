@@ -9,6 +9,7 @@ import TrackItem from "./trackItem";
 import IconButton from "@/components/IconButton";
 import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Artist, Track } from "@/types/types";
 
 export default function ArtistExplorer(props: { params: Promise<{ artistId: string }> }) {
     const params = use(props.params);
