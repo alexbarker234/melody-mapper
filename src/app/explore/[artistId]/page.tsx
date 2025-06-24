@@ -16,7 +16,6 @@ export default function ArtistExplorer(props: { params: Promise<{ artistId: stri
   const [artistData, setArtistData] = useState<{ [key: string]: Artist }>({});
   const [selectedArtistId, setSelectedArtistId] = useState<string>(params.artistId);
   const [trackList, setTrackList] = useState<Track[]>([]);
-  const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const graphDivRef = useRef<HTMLDivElement>(null);
   // side bar
   const [sideBarScreen, setSideBarScreen] = useState<"artist" | "queue">("artist");
@@ -44,19 +43,6 @@ export default function ArtistExplorer(props: { params: Promise<{ artistId: stri
     setArtistData(newData);
   };
 
-  // Responsive graph
-  useEffect(() => {
-    const handleResize = () => {
-      if (!graphDivRef.current) return;
-      setDimensions({ width: graphDivRef.current.clientWidth, height: graphDivRef.current.clientHeight });
-    };
-    handleResize();
-    graphDivRef.current?.addEventListener("resize", handleResize);
-    return () => {
-      graphDivRef.current?.removeEventListener("resize", handleResize);
-    };
-  }, [graphDivRef]);
-
   // On new artist selected
   useEffect(() => {
     const fetchData = async () => {
@@ -64,7 +50,7 @@ export default function ArtistExplorer(props: { params: Promise<{ artistId: stri
       const topTracks: Track[] = await topTracksResp.json();
       setTrackList(topTracks);
     };
-    console.log(`querying ${selectedArtistId}`);
+
     if (selectedArtistId) {
       setTrackList([]);
       setSideBarScreen("artist");
@@ -88,7 +74,7 @@ export default function ArtistExplorer(props: { params: Promise<{ artistId: stri
   };
 
   const selectedArtist = artistData[selectedArtistId];
-  console.log(selectedArtist);
+
   return (
     <main className={styles["page"]}>
       <div className={styles["main-section"]}>
@@ -97,8 +83,6 @@ export default function ArtistExplorer(props: { params: Promise<{ artistId: stri
             selectedArtist={selectedArtist}
             setSelectedArtist={setSelectedArtistId}
             addArtistData={addArtists}
-            width={dimensions.width}
-            height={dimensions.height}
             seedId={params.artistId}
           />
         </div>

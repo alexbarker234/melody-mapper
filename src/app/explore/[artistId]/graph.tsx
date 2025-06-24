@@ -3,42 +3,25 @@ import Loading from "@/app/loading";
 import ForceGraph from "@/components/ForceGraph";
 import { Link, Node } from "@/components/ForceGraph/types";
 import { Artist } from "@/types/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./graphOverrides.scss";
 
 interface ArtistNodeObject extends Node {
   artist: Artist;
-  links: ArtistLinkObject[];
   name: string;
-}
-
-interface ArtistLinkObject extends Link {
-  source: string;
-  target: string;
 }
 
 interface ArtistNodeGraphProps {
   selectedArtist?: Artist;
   setSelectedArtist: (artistId: string) => void;
   addArtistData: (data: Artist[]) => void;
-  width: number;
-  height: number;
   seedId: string;
 }
 
-export const ArtistNodeGraph = ({
-  selectedArtist,
-  setSelectedArtist,
-  addArtistData,
-  width,
-  height,
-  seedId
-}: ArtistNodeGraphProps) => {
+export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistData, seedId }: ArtistNodeGraphProps) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [links, setLinks] = useState<Link[]>([]);
-  const [isGraphInitialized, setIsGraphInitialized] = useState(false);
-  const hoverNode = useRef<string>("");
-  const fetchedArtists = useRef<string[]>([]);
+  const [fetchedArtists, setFetchedArtists] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,7 +33,7 @@ export const ArtistNodeGraph = ({
       if (seedNodeResp.status != 200) return console.log("seed error");
       const seedNode: Artist = await seedNodeResp.json();
       artistNodes.push(seedNode);
-      fetchedArtists.current.push(seed);
+      setFetchedArtists((prev) => [...prev, seed]);
 
       const relatedNodesResp = await fetch(`/api/artist/related?artistName=${seedNode.name}`);
       if (relatedNodesResp.status != 200) return console.log("related error");
@@ -104,23 +87,30 @@ export const ArtistNodeGraph = ({
           }))
       ];
 
+      setFetchedArtists((prev) => [...prev, artistNode.id]);
+
       return newNodes;
     });
 
     setLinks((prevLinks) => {
-      const newLinks = [...prevLinks, ...relatedNodes.map((newArtist) => ({ source: artistId, target: newArtist.id }))];
+      let newLinks = [
+        ...relatedNodes
+          .filter((newArtist) => newArtist.id !== artistId) // Prevent self-linking
+          .map((newArtist) => ({ source: artistId, target: newArtist.id }))
+      ];
 
-      // Update links for all nodes
-      newLinks.forEach((link) => {
-        const a = nodes.find((n) => n.id == link.source) as ArtistNodeObject;
-        const b = nodes.find((n) => n.id == link.target) as ArtistNodeObject;
-        if (!a || !b) return;
+      newLinks = newLinks.filter(
+        (newLink) =>
+          !prevLinks.some(
+            (existingLink) =>
+              ((existingLink.source as Node).id === newLink.source &&
+                (existingLink.target as Node).id === newLink.target) ||
+              ((existingLink.source as Node).id === newLink.target &&
+                (existingLink.target as Node).id === newLink.source)
+          )
+      );
 
-        !a.links && (a.links = []);
-        !b.links && (b.links = []);
-        a.links.push(link as ArtistLinkObject);
-        b.links.push(link as ArtistLinkObject);
-      });
+      newLinks = [...prevLinks, ...newLinks];
 
       return newLinks;
     });
@@ -133,33 +123,22 @@ export const ArtistNodeGraph = ({
     if (!artistNode.id) return;
     const artistId = artistNode.id as string;
 
-    if (selectedArtist?.id == artistNode.id && !fetchedArtists.current.includes(artistId)) {
+    if (selectedArtist?.id == artistNode.id && !fetchedArtists.includes(artistId)) {
       getMoreArtists(artistNode);
     }
     setSelectedArtist(artistId);
   };
 
-  const handleNodeHover = (node: Node | null) => {
-    if (!node) {
-      hoverNode.current = "";
-      return;
-    }
-    hoverNode.current = node.id;
-  };
-
   if (!nodes.length) return <Loading style={{ top: "50%" }} />;
 
   return (
-    <div style={{ width, height }}>
+    <div style={{ width: "100%", height: "100%" }}>
       <ForceGraph
         nodes={nodes}
         links={links}
         onNodesChange={setNodes}
         onLinksChange={setLinks}
         onNodeClick={handleNodeClick}
-        onNodeHover={handleNodeHover}
-        width={width}
-        height={height}
         hideLabels={true}
         nodeSize={20}
       />
