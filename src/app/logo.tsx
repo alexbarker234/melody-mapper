@@ -3,10 +3,10 @@ import styles from "./logo.module.scss";
 import Link from "next/link";
 
 export default function Logo() {
-    return (
-        <Link href="/" className={styles["logo"]}>
-            <Image src="/logo.png" width={100} height={100} alt="logo"></Image>
-            <span>Melody Mapper</span>
-        </Link>
-    );
+  return (
+    <Link href="/" className={styles["logo"]}>
+      <Image src="/logo.png" width={100} height={100} alt="logo"></Image>
+      <span>Melody Mapper</span>
+    </Link>
+  );
 }

@@ -5,12 +5,12 @@ import ForceGraph2D, { ForceGraphMethods, ForceGraphProps } from "react-force-gr
 // Library dislikes forwardRef?
 
 interface AdditionalProps {
-    forceRef: MutableRefObject<ForceGraphMethods<{}, {}> | undefined>;
+  forceRef: MutableRefObject<ForceGraphMethods<{}, {}> | undefined>;
 }
 type ExtendedForceGraphProps = ForceGraphProps<{}, {}> & AdditionalProps;
 
 const WrappedForceGraph2D = ({ forceRef, ...props }: ExtendedForceGraphProps) => {
-    return <ForceGraph2D ref={forceRef} {...props} />;
+  return <ForceGraph2D ref={forceRef} {...props} />;
 };
 
 export default WrappedForceGraph2D;
