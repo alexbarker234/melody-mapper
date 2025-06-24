@@ -70,34 +70,29 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
     if (relatedNodesResp.status != 200) return console.log("related error");
     const relatedNodes: Artist[] = await relatedNodesResp.json();
 
+    setFetchedArtists((prev) => [...prev, artistNode.id]);
+
     setNodes((prevNodes) => {
-      const newNodes = [
-        ...prevNodes,
-        ...relatedNodes
-          .filter((newArtist) => !prevNodes.some((n) => n.id === newArtist.id))
-          .map((newArtist) => ({
-            id: newArtist.id,
-            name: newArtist.name,
-            artist: newArtist,
-            description: newArtist.name,
-            imageUrl: newArtist.imageURL,
-            x: artistNode.x,
-            y: artistNode.y,
-            links: []
-          }))
-      ];
+      const newNodes = relatedNodes
+        .filter((newArtist) => !prevNodes.some((n) => n.id === newArtist.id))
+        .map((newArtist) => ({
+          id: newArtist.id,
+          name: newArtist.name,
+          artist: newArtist,
+          description: newArtist.name,
+          imageUrl: newArtist.imageURL,
+          x: artistNode.x,
+          y: artistNode.y,
+          links: []
+        }));
 
-      setFetchedArtists((prev) => [...prev, artistNode.id]);
-
-      return newNodes;
+      return [...prevNodes, ...newNodes];
     });
 
     setLinks((prevLinks) => {
-      let newLinks = [
-        ...relatedNodes
-          .filter((newArtist) => newArtist.id !== artistId) // Prevent self-linking
-          .map((newArtist) => ({ source: artistId, target: newArtist.id }))
-      ];
+      let newLinks = relatedNodes
+        .filter((newArtist) => newArtist.id !== artistId) // Prevent self-linking
+        .map((newArtist) => ({ source: artistId, target: newArtist.id }));
 
       newLinks = newLinks.filter(
         (newLink) =>
@@ -110,9 +105,7 @@ export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistDa
           )
       );
 
-      newLinks = [...prevLinks, ...newLinks];
-
-      return newLinks;
+      return [...prevLinks, ...newLinks];
     });
 
     addArtistData(relatedNodes);
