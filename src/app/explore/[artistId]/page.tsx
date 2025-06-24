@@ -1,5 +1,5 @@
 "use client";
-import { ReactEventHandler, useEffect, useRef, useState } from "react";
+import { ReactEventHandler, useEffect, useRef, useState, use } from "react";
 import { ArtistNodeGraph } from "./graph";
 import styles from "./page.module.scss";
 import MusicPlayer, { MusicPlayerRef, PlayerState } from "./player";
@@ -10,7 +10,8 @@ import IconButton from "@/components/IconButton";
 import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export default function ArtistExplorer({ params }: { params: { artistId: string } }) {
+export default function ArtistExplorer(props: { params: Promise<{ artistId: string }> }) {
+    const params = use(props.params);
     // graph
     const [artistData, setArtistData] = useState<{ [key: string]: Artist }>({});
     const [selectedArtistId, setSelectedArtist] = useState<string>(params.artistId);

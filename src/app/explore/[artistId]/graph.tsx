@@ -36,8 +36,8 @@ interface ArtistNodeGraphProps {
 }
 
 export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistData, width, height, seedId }: ArtistNodeGraphProps) => {
-    const fgRef = useRef<ForceGraphMethods>();
-    const prevfgRef = useRef<ForceGraphMethods>();
+    const fgRef = useRef<ForceGraphMethods>(undefined);
+    const prevfgRef = useRef<ForceGraphMethods>(undefined);
 
     const [data, setData] = useState<GraphData>();
     const hoverNode = useRef<string>("");

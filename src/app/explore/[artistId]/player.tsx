@@ -219,7 +219,7 @@ export default MusicPlayer;
 // TODO: probably touch up on the practice here
 interface DevicePlayerProps {
     playerState: PlayerState;
-    audioRef: RefObject<HTMLAudioElement>;
+    audioRef: RefObject<HTMLAudioElement | null>;
     queueOpen: boolean;
     setQueueOpen?: (value: boolean) => void;
     playPauseHandler: () => void;
