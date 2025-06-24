@@ -12,7 +12,7 @@ import { Link, Node } from "./types";
 interface ForceGraphProps {
   nodes: Node[];
   links: Link[];
-  onNodesChange: (nodes: Node[]) => void;
+  onNodesChange: React.Dispatch<React.SetStateAction<Node[]>>;
   onLinksChange: (links: Link[]) => void;
   onNodeClick?: (node: Node) => void;
   onNodeHover?: (node: Node | null) => void;
@@ -120,8 +120,14 @@ export default function ForceGraph({
     simulationRef.current = simulation;
 
     simulation.on("tick", () => {
-      onNodesChange([...nodes]);
-      onLinksChange([...links]);
+      onNodesChange((prevNodes) => {
+        // Bug with the simulation tick sometimes overwriting nodes when they get added with the previous ticks nodes
+        if (prevNodes.length != nodes.length) {
+          console.log("Tick conflict detected, skipping update");
+          return prevNodes;
+        }
+        return [...nodes];
+      });
     });
 
     return () => {
