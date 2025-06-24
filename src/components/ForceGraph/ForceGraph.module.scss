@@ -56,4 +56,11 @@
   stroke: #999;
   stroke-opacity: 0.6;
   stroke-width: 1.5;
+  transition: stroke 0.2s ease-in-out, stroke-opacity 0.2s ease-in-out, stroke-width 0.2s ease-in-out;
+}
+
+.linkHighlighted {
+  stroke: var(--blue);
+  stroke-opacity: 1;
+  stroke-width: 3;
 }

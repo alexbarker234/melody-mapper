@@ -39,6 +39,7 @@ export default function ForceGraph({
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [tooltipText, setTooltipText] = useState("");
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
 
   const handleDragStart = useCallback((event: any, node: Node) => {
     if (!event.active && simulationRef.current) {
@@ -130,11 +131,13 @@ export default function ForceGraph({
   const handleNodeMouseOver = (event: React.MouseEvent, node: Node) => {
     setIsTooltipVisible(true);
     setTooltipText(node.description || `Node ${node.id}`);
+    setHoveredNode(node);
     onNodeHover?.(node);
   };
 
   const handleNodeMouseOut = () => {
     setIsTooltipVisible(false);
+    setHoveredNode(null);
     onNodeHover?.(null);
   };
 
@@ -147,7 +150,15 @@ export default function ForceGraph({
       <svg ref={svgRef} className={styles.graphSvg}>
         <g>
           {links.map((link, index) => (
-            <LinkComponent key={`link-${index}`} link={link} />
+            <LinkComponent
+              key={`link-${index}`}
+              link={link}
+              isHighlighted={
+                hoveredNode
+                  ? (link.source as Node).id === hoveredNode.id || (link.target as Node).id === hoveredNode.id
+                  : false
+              }
+            />
           ))}
 
           {nodes.map((node) => (

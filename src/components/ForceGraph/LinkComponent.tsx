@@ -3,9 +3,10 @@ import { Link, Node } from "./types";
 
 interface LinkComponentProps {
   link: Link;
+  isHighlighted?: boolean;
 }
 
-export default function LinkComponent({ link }: LinkComponentProps) {
+export default function LinkComponent({ link, isHighlighted = false }: LinkComponentProps) {
   const source = link.source as Node;
   const target = link.target as Node;
 
@@ -13,5 +14,13 @@ export default function LinkComponent({ link }: LinkComponentProps) {
     return null;
   }
 
-  return <line className={styles.link} x1={source.x} y1={source.y} x2={target.x} y2={target.y} />;
+  return (
+    <line
+      className={`${styles.link} ${isHighlighted ? styles.linkHighlighted : ""}`}
+      x1={source.x}
+      y1={source.y}
+      x2={target.x}
+      y2={target.y}
+    />
+  );
 }
