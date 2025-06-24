@@ -14,9 +14,22 @@ interface ForceGraphProps {
   links: Link[];
   onNodesChange: (nodes: Node[]) => void;
   onLinksChange: (links: Link[]) => void;
+  onNodeClick?: (node: Node) => void;
+  onNodeHover?: (node: Node | null) => void;
+  width?: number;
+  height?: number;
 }
 
-export default function ForceGraph({ nodes, links, onNodesChange, onLinksChange }: ForceGraphProps) {
+export default function ForceGraph({
+  nodes,
+  links,
+  onNodesChange,
+  onLinksChange,
+  onNodeClick,
+  onNodeHover,
+  width = 600,
+  height = 400
+}: ForceGraphProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const simulationRef = useRef<d3.Simulation<Node, undefined> | null>(null);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
@@ -73,9 +86,6 @@ export default function ForceGraph({ nodes, links, onNodesChange, onLinksChange 
   useEffect(() => {
     if (!svgRef.current) return;
 
-    const width = 600;
-    const height = 400;
-
     const svg = d3.select(svgRef.current).attr("viewBox", [0, 0, width, height] as any);
 
     const zoom = d3
@@ -96,7 +106,10 @@ export default function ForceGraph({ nodes, links, onNodesChange, onLinksChange 
           .id((d) => d.id)
           .distance(80)
       )
-      .force("charge", d3.forceManyBody().strength(-300))
+      .force("charge", d3.forceManyBody().strength(-16))
+      .force("collide", d3.forceCollide(6))
+      .alphaDecay(0.01)
+      .velocityDecay(0.7)
       .force("center", d3.forceCenter(width / 2, height / 2));
 
     simulationRef.current = simulation;
@@ -108,15 +121,21 @@ export default function ForceGraph({ nodes, links, onNodesChange, onLinksChange 
     return () => {
       simulation.stop();
     };
-  }, [nodes, links, onNodesChange]);
+  }, [nodes, links, onNodesChange, width, height]);
 
   const handleNodeMouseOver = (event: React.MouseEvent, node: Node) => {
     setIsTooltipVisible(true);
     setTooltipText(node.description || `Node ${node.id}`);
+    onNodeHover?.(node);
   };
 
   const handleNodeMouseOut = () => {
     setIsTooltipVisible(false);
+    onNodeHover?.(null);
+  };
+
+  const handleNodeClick = (event: React.MouseEvent, node: Node) => {
+    onNodeClick?.(node);
   };
 
   return (
@@ -133,6 +152,7 @@ export default function ForceGraph({ nodes, links, onNodesChange, onLinksChange 
               node={node}
               onMouseOver={handleNodeMouseOver}
               onMouseOut={handleNodeMouseOut}
+              onClick={handleNodeClick}
               onDragStart={handleDragStart}
               onDrag={handleDrag}
               onDragEnd={handleDragEnd}

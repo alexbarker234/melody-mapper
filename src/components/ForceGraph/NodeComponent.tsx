@@ -7,6 +7,7 @@ interface NodeComponentProps {
   node: Node;
   onMouseOver: (event: React.MouseEvent, node: Node) => void;
   onMouseOut: () => void;
+  onClick?: (event: React.MouseEvent, node: Node) => void;
   onDragStart: (event: any, node: Node) => void;
   onDrag: (event: any, node: Node) => void;
   onDragEnd: (event: any, node: Node) => void;
@@ -16,12 +17,13 @@ export default function NodeComponent({
   node,
   onMouseOver,
   onMouseOut,
+  onClick,
   onDragStart,
   onDrag,
   onDragEnd
 }: NodeComponentProps) {
   const nodeRef = useRef<SVGGElement>(null);
-  const nodeSize = 40;
+  const nodeSize = 20;
 
   useEffect(() => {
     if (nodeRef.current) {
@@ -51,24 +53,20 @@ export default function NodeComponent({
     <g
       ref={nodeRef}
       transform={`translate(${node.x},${node.y})`}
-      style={{ cursor: "pointer" }}
+      className={styles.node}
       onMouseOver={(e) => onMouseOver(e, node)}
       onMouseOut={onMouseOut}
+      onClick={(e) => onClick?.(e, node)}
+      width={nodeSize}
+      height={nodeSize}
     >
-      <rect
-        className={styles.nodeSquare}
+      <rect width={nodeSize} height={nodeSize} x={-nodeSize / 2} y={-nodeSize / 2} rx={4} />
+      <image
+        className={styles.nodeImage}
         width={nodeSize}
         height={nodeSize}
         x={-nodeSize / 2}
         y={-nodeSize / 2}
-        rx={4}
-      />
-      <image
-        className={styles.nodeImage}
-        width={nodeSize - 8}
-        height={nodeSize - 8}
-        x={-(nodeSize - 8) / 2}
-        y={-(nodeSize - 8) / 2}
         href={node.imageUrl || "https://via.placeholder.com/32/cccccc/ffffff?text=?"}
         preserveAspectRatio="xMidYMid slice"
       />
