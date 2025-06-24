@@ -1,12 +1,11 @@
 "use client";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconType } from "react-icons";
 import styles from "./iconButton.module.scss";
-import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 interface IconButtonProps {
   className?: string;
   hoverText?: string;
-  icon: IconDefinition;
+  icon: IconType;
   disabled?: boolean;
   stopPropagation?: boolean;
   onClick?: (event: React.MouseEvent) => void;
@@ -14,7 +13,7 @@ interface IconButtonProps {
 
 export default function IconButton({
   className,
-  icon,
+  icon: Icon,
   hoverText,
   disabled,
   stopPropagation = true,
@@ -28,7 +27,7 @@ export default function IconButton({
   return (
     <div className={`${styles["button-container"]} ${className ?? ""}`}>
       <button className={styles["icon-button"]} onClick={clickHandler} disabled={disabled}>
-        <FontAwesomeIcon icon={icon} />
+        <Icon />
       </button>
       {hoverText && <div className={styles["hover-text"]}>{hoverText}</div>}
     </div>

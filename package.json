@@ -11,14 +11,12 @@
     "format": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.4.2",
-    "@fortawesome/free-solid-svg-icons": "^6.4.2",
-    "@fortawesome/react-fontawesome": "^0.2.0",
     "d3-force": "^3.0.0",
     "next": "15.3.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-force-graph-2d": "^1.25.2",
+    "react-icons": "^5.5.0",
     "typescript": "5.2.2"
   },
   "devDependencies": {

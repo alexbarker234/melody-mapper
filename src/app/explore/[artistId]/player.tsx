@@ -1,18 +1,6 @@
 "use client";
 import IconButton from "@/components/IconButton";
 import { Track } from "@/types/types";
-import {
-  faBackward,
-  faBars,
-  faChevronDown,
-  faForward,
-  faPause,
-  faPlay,
-  faVolumeHigh,
-  faVolumeLow,
-  faVolumeMute,
-  faVolumeOff
-} from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
 import {
   RefObject,
@@ -24,9 +12,10 @@ import {
   useRef,
   useState
 } from "react";
+import { FaBackward, FaChevronDown, FaVolumeMute } from "react-icons/fa";
+import { FaBars, FaForward, FaPause, FaPlay, FaVolumeHigh, FaVolumeLow, FaVolumeOff } from "react-icons/fa6";
 import styles from "./player.module.scss";
 import SlidingBar from "./slidingBar";
-
 export type MusicPlayerRef = {
   addToQueue: (tracks: Track[]) => void;
   clearQueue: () => void;
@@ -266,9 +255,9 @@ const DesktopPlayer = ({
           <IconButton
             onClick={playPauseHandler}
             disabled={currentTrack == undefined}
-            icon={isPlaying ? faPause : faPlay}
+            icon={isPlaying ? FaPlay : FaPause}
           />
-          <IconButton onClick={nextTrack} disabled={currentTrack == undefined} icon={faForward} />
+          <IconButton onClick={nextTrack} disabled={currentTrack == undefined} icon={FaForward} />
         </div>
         <SlidingBar
           className={styles["progress-bar"]}
@@ -286,11 +275,11 @@ const DesktopPlayer = ({
           <IconButton
             className={`${styles["queue-button"]} ${styles["control-button"]} ${queueOpen ? styles["highlighted"] : ""}`}
             onClick={() => setQueueOpen && setQueueOpen(!queueOpen)}
-            icon={faBars}
+            icon={FaBars}
             hoverText="Queue"
           />
           <IconButton
-            icon={muted ? faVolumeMute : volume > 0.5 ? faVolumeHigh : volume > 0 ? faVolumeLow : faVolumeOff}
+            icon={muted ? FaVolumeMute : volume > 0.5 ? FaVolumeHigh : volume > 0 ? FaVolumeLow : FaVolumeOff}
             className={`${styles["volume-button"]} ${styles["control-button"]}`}
             onClick={() => audioRef.current && (audioRef.current.muted = !audioRef.current.muted)}
             hoverText="Mute"
@@ -338,18 +327,18 @@ const MobilePlayer = ({
           <IconButton
             className={`${styles["queue-button"]} ${styles["control-button"]} ${queueOpen ? styles["highlighted"] : ""}`}
             onClick={() => setQueueOpen && setQueueOpen(!queueOpen)}
-            icon={faBars}
+            icon={FaBars}
           />
           <IconButton
             className={styles["control-button"]}
             onClick={playPauseHandler}
             disabled={currentTrack == undefined}
-            icon={isPlaying ? faPause : faPlay}
+            icon={isPlaying ? FaPause : FaPlay}
           />
         </div>
       </div>
       <div className={`${styles["mobile-screen"]} ${menuOpen ? styles["open"] : ""}`}>
-        <IconButton className={styles["screen-close"]} onClick={() => setMenuOpen(false)} icon={faChevronDown} />
+        <IconButton className={styles["screen-close"]} onClick={() => setMenuOpen(false)} icon={FaChevronDown} />
         <div className={styles["img-container"]}>
           {currentTrack && <Image src={currentTrack.imageURL} alt={currentTrack.name} width={640} height={640} />}
         </div>
@@ -359,13 +348,13 @@ const MobilePlayer = ({
             <div className={styles["artist-name"]}>{currentTrack?.artist.name}</div>
           </div>
           <div className={styles["buttons"]}>
-            <IconButton onClick={prevTrack} disabled={currentTrack == undefined} icon={faBackward} />
+            <IconButton onClick={prevTrack} disabled={currentTrack == undefined} icon={FaBackward} />
             <IconButton
               onClick={playPauseHandler}
               disabled={currentTrack == undefined}
-              icon={isPlaying ? faPause : faPlay}
+              icon={isPlaying ? FaPause : FaPlay}
             />
-            <IconButton onClick={nextTrack} disabled={currentTrack == undefined} icon={faForward} />
+            <IconButton onClick={nextTrack} disabled={currentTrack == undefined} icon={FaForward} />
           </div>
         </div>
       </div>

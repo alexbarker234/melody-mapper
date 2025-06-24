@@ -1,15 +1,14 @@
 "use client";
-import { ReactEventHandler, useEffect, useRef, useState, use } from "react";
+import Loading from "@/app/loading";
+import IconButton from "@/components/IconButton";
+import { Artist, Track } from "@/types/types";
+import Image from "next/image";
+import { use, useEffect, useRef, useState } from "react";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { ArtistNodeGraph } from "./graph";
 import styles from "./page.module.scss";
 import MusicPlayer, { MusicPlayerRef, PlayerState } from "./player";
-import Loading from "@/app/loading";
-import Image from "next/image";
 import TrackItem from "./trackItem";
-import IconButton from "@/components/IconButton";
-import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Artist, Track } from "@/types/types";
 
 export default function ArtistExplorer(props: { params: Promise<{ artistId: string }> }) {
   const params = use(props.params);
@@ -106,13 +105,13 @@ export default function ArtistExplorer(props: { params: Promise<{ artistId: stri
           <div className={styles["mobile-top-title"]}>
             <button onClick={() => setSideBarOpen(true)}>
               <div className={styles["artist-title"]}>{selectedArtist?.name}</div>
-              <FontAwesomeIcon className={styles["forward-button"]} icon={faChevronRight} />
+              <FaChevronRight className={styles["forward-button"]} />
             </button>
           </div>
         )}
         <div className={`${styles["side-bar"]} ${isSideBarOpen ? styles["focus"] : ""}`}>
           {isMobile && (
-            <IconButton className={styles["back-button"]} icon={faChevronLeft} onClick={() => setSideBarOpen(false)} />
+            <IconButton className={styles["back-button"]} icon={FaChevronLeft} onClick={() => setSideBarOpen(false)} />
           )}
           {sideBarScreen == "artist" ? (
             <ArtistScreen artist={selectedArtist} trackList={trackList} playSong={playSong} />
