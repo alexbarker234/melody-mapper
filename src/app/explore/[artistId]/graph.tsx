@@ -1,219 +1,144 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { ForceGraphMethods, GraphData, LinkObject, NodeObject } from "react-force-graph-2d";
-import { forceCollide, forceManyBody } from "d3-force";
+import Loading from "@/app/loading";
+import ForceGraph from "@/components/ForceGraph";
+import { Link, Node } from "@/components/ForceGraph/types";
+import { Artist } from "@/types/types";
+import { useEffect, useState } from "react";
 import "./graphOverrides.scss";
 
-import dynamic from "next/dynamic";
-import Loading from "@/app/loading";
-const ForceGraph = dynamic(() => import("@/components/ForceGraph"), {
-    ssr: false,
-});
-
-interface ArtistNodeObject {
-    artist: Artist;
-    links: ArtistLinkObject[];
-    id: string;
-    x?: number;
-    y?: number;
-    vx?: number;
-    vy?: number;
-    fx?: number;
-    fy?: number;
-}
-interface ArtistLinkObject extends LinkObject {
-    source: string;
-    target: string;
+interface ArtistNodeObject extends Node {
+  artist: Artist;
+  name: string;
 }
 
 interface ArtistNodeGraphProps {
-    selectedArtist: Artist;
-    setSelectedArtist: (artistId: string) => void;
-    addArtistData: (data: Artist[]) => void;
-    width: number;
-    height: number;
-    seedId: string;
+  selectedArtist?: Artist;
+  setSelectedArtist: (artistId: string) => void;
+  addArtistData: (data: Artist[]) => void;
+  seedId: string;
 }
 
-export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistData, width, height, seedId }: ArtistNodeGraphProps) => {
-    const fgRef = useRef<ForceGraphMethods>();
-    const prevfgRef = useRef<ForceGraphMethods>();
+export const ArtistNodeGraph = ({ selectedArtist, setSelectedArtist, addArtistData, seedId }: ArtistNodeGraphProps) => {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [links, setLinks] = useState<Link[]>([]);
+  const [fetchedArtists, setFetchedArtists] = useState<string[]>([]);
 
-    const [data, setData] = useState<GraphData>();
-    const hoverNode = useRef<string>("");
-    const fetchedArtists = useRef<string[]>([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const seed = seedId;
 
-    const highlightedLinks = useRef<ArtistLinkObject[]>([]);
+      const artistNodes: Artist[] = [];
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const seed = seedId;
+      const seedNodeResp = await fetch(`/api/artist?id=${seed}`);
+      if (seedNodeResp.status != 200) return console.log("seed error");
+      const seedNode: Artist = await seedNodeResp.json();
+      artistNodes.push(seedNode);
+      setFetchedArtists((prev) => [...prev, seed]);
 
-            const artistNodes: Artist[] = [];
+      const relatedNodesResp = await fetch(`/api/artist/related?artistName=${seedNode.name}`);
+      if (relatedNodesResp.status != 200) return console.log("related error");
+      const relatedNodes: Artist[] = await relatedNodesResp.json();
+      relatedNodes.forEach((artistNode) => {
+        artistNodes.push(artistNode);
+      });
 
-            const seedNodeResp = await fetch(`/api/artist?id=${seed}`);
-            if (seedNodeResp.status != 200) return console.log("seed error");
-            const seedNode: Artist = await seedNodeResp.json();
-            artistNodes.push(seedNode);
-            fetchedArtists.current.push(seed);
+      const linkObjects: Link[] = artistNodes.map((n) => ({ source: seedNode.id, target: n.id }));
+      const nodeObjects: Node[] = artistNodes.map((artist) => ({
+        id: artist.id,
+        name: artist.name,
+        artist: artist,
+        description: artist.name,
+        imageUrl: artist.imageURL,
+        links: linkObjects.filter((l) => l.source == artist.id || l.target == artist.id)
+      }));
 
-            const relatedNodesResp = await fetch(`/api/artist/related?id=${seed}`);
-            if (relatedNodesResp.status != 200) return console.log("related error");
-            const relatedNodes: Artist[] = await relatedNodesResp.json();
-            relatedNodes.forEach((artistNode) => {
-                artistNodes.push(artistNode);
-            });
+      setNodes(nodeObjects);
+      setLinks(linkObjects);
+      addArtistData(artistNodes);
+    };
 
-            const links: ArtistLinkObject[] = artistNodes.map((n) => ({ source: seedNode.id, target: n.id }));
-            const nodes: ArtistNodeObject[] = artistNodes.map((artist) => ({
-                id: artist.id,
-                name: artist.name,
-                artist: artist,
-                links: links.filter((l) => l.source == artist.id || l.target == artist.id),
-            }));
+    fetchData();
+  }, [seedId]);
 
-            setData({ nodes, links });
-            addArtistData(artistNodes);
-        };
+  const getMoreArtists = async (node: Node) => {
+    const artistNode = node as ArtistNodeObject;
 
-        fetchData();
-    }, []);
-    // detect dynamic import load 
-    useEffect(() => {
-        if (fgRef.current && prevfgRef.current == undefined) {
-            fgRef.current.d3Force("charge", forceManyBody().strength(-16));
-            fgRef.current.d3Force("collide", forceCollide(6));
-            fgRef.current.zoom(5);
-        }
-        prevfgRef.current = fgRef.current;
+    if (!nodes.length) return;
+    const artistId = artistNode.id;
+
+    const relatedNodesResp = await fetch(`/api/artist/related?artistName=${artistNode.name}`);
+    if (relatedNodesResp.status != 200) return console.log("related error");
+    const relatedNodes: Artist[] = await relatedNodesResp.json();
+
+    setFetchedArtists((prev) => [...prev, artistNode.id]);
+
+    setNodes((prevNodes) => {
+      const newNodes = relatedNodes
+        .filter((newArtist) => !prevNodes.some((n) => n.id === newArtist.id))
+        .map((newArtist) => ({
+          id: newArtist.id,
+          name: newArtist.name,
+          artist: newArtist,
+          description: newArtist.name,
+          imageUrl: newArtist.imageURL,
+          x: artistNode.x,
+          y: artistNode.y,
+          links: []
+        }));
+
+      console.log(`Adding ${newNodes.length} nodes related to ${artistNode.name}`);
+
+      return [...prevNodes, ...newNodes];
     });
 
-    const getMoreArtists = async (node: NodeObject) => {
-        const artistNode = node as ArtistNodeObject;
+    setLinks((prevLinks) => {
+      let newLinks = relatedNodes
+        .filter((newArtist) => newArtist.id !== artistId) // Prevent self-linking
+        .map((newArtist) => ({ source: artistId, target: newArtist.id }));
 
-        if (!data) return;
-        const artistId = artistNode.id;
+      newLinks = newLinks.filter(
+        (newLink) =>
+          !prevLinks.some(
+            (existingLink) =>
+              ((existingLink.source as Node).id === newLink.source &&
+                (existingLink.target as Node).id === newLink.target) ||
+              ((existingLink.source as Node).id === newLink.target &&
+                (existingLink.target as Node).id === newLink.source)
+          )
+      );
 
-        const relatedNodesResp = await fetch(`/api/artist/related?id=${artistId}`);
-        if (relatedNodesResp.status != 200) return console.log("related error");
-        const relatedNodes: Artist[] = await relatedNodesResp.json();
+      console.log(`Adding ${newLinks.length} links related to ${artistNode.name}`);
 
-        // focus on node while moving
-        let elapsedTime = 0;
-        const interval = 5;
-        const duration = 250;
-        const intervalId = setInterval(() => {
-            fgRef.current?.centerAt(artistNode.x, artistNode.y, 500);
+      return [...prevLinks, ...newLinks];
+    });
 
-            elapsedTime += interval;
-            if (elapsedTime >= duration) clearInterval(intervalId);
-        }, interval);
+    addArtistData(relatedNodes);
+  };
 
-        setData((prevData) => {
-            const { nodes, links } = prevData as GraphData;
+  const handleNodeClick = (node: Node) => {
+    const artistNode = node as ArtistNodeObject;
+    if (!artistNode.id) return;
+    const artistId = artistNode.id as string;
 
-            const newData = {
-                nodes: [
-                    ...nodes,
-                    ...relatedNodes
-                        .filter((newArtist) => !nodes.some((n) => n.id === newArtist.id))
-                        .map((newArtist) => ({ id: newArtist.id, name: newArtist.name, artist: newArtist, x: artistNode.x, y: artistNode.y, links: [] })),
-                ],
-                links: [...links, ...relatedNodes.map((newArtist) => ({ source: artistId, target: newArtist.id }))],
-            };
+    if (selectedArtist?.id == artistNode.id && !fetchedArtists.includes(artistId)) {
+      getMoreArtists(artistNode);
+    }
+    setSelectedArtist(artistId);
+  };
 
-            newData.links.forEach((link) => {
-                const artistLink = link as ArtistLinkObject;
-                if (!link || !link.source || !link.target) return;
-                const a = newData.nodes.find((n) => n.id == artistLink.source) as ArtistNodeObject;
-                const b = newData.nodes.find((n) => n.id == artistLink.target) as ArtistNodeObject;
-                if (!a || !b) return;
+  if (!nodes.length) return <Loading style={{ top: "50%" }} />;
 
-                !a.links && (a.links = []);
-                !b.links && (b.links = []);
-                a.links.push(artistLink);
-                b.links.push(artistLink);
-            });
-            return newData;
-        });
-        addArtistData(relatedNodes);
-    };
-
-    const handleClick = (node: NodeObject) => {
-        const artistNode = node as ArtistNodeObject;
-        if (!artistNode.id || !artistNode.x || !artistNode.y || !fgRef.current) return;
-        const artistId = artistNode.id as string;
-
-        const transitionMS = 500;
-        fgRef.current.centerAt(artistNode.x, artistNode.y, transitionMS);
-        fgRef.current.zoom(10, transitionMS);
-        if (selectedArtist.id == artistNode.id && !fetchedArtists.current.includes(artistId)) getMoreArtists(artistNode);
-        setSelectedArtist(artistId);
-    };
-    const handleHover = (node: NodeObject | null, previousNode: NodeObject | null) => {
-        highlightedLinks.current = [];
-        hoverNode.current = "";
-        if (!node || !node.x || !node.y || !fgRef.current) return;
-        hoverNode.current = (node.id ?? "") as string;
-
-        node.links.forEach((link: LinkObject) => highlightedLinks.current.push(link as ArtistLinkObject));
-    };
-
-    const nodeSize = 10;
-    const outlineWidth = 1.5;
-
-    return (
-        <>
-            {!data && <Loading style={{top: '50%'}}/> }
-            <ForceGraph
-                forceRef={fgRef}
-                width={width}
-                height={height}
-                d3AlphaDecay={0.01}
-                d3VelocityDecay={0.7}
-                graphData={data}
-                linkColor={(link) => (highlightedLinks.current.includes(link as ArtistLinkObject) ? "#3965a8" : "#ffffff")}
-                nodeCanvasObject={(node, ctx, globalScale) => {
-                    const artistNode = node as ArtistNodeObject;
-                    if (!artistNode.x || !artistNode.y) return;
-
-                    if (artistNode.id == hoverNode.current || artistNode.id == selectedArtist.id) {
-                        // Draw outline
-                        ctx.beginPath();
-                        ctx.roundRect(
-                            artistNode.x - nodeSize / 2 - outlineWidth,
-                            artistNode.y - nodeSize / 2 - outlineWidth,
-                            nodeSize + outlineWidth * 2,
-                            nodeSize + outlineWidth * 2,
-                            2
-                        );
-                        ctx.fillStyle = "white";
-                        ctx.fill();
-                    }
-
-                    // white default background
-                    ctx.beginPath();
-                    ctx.rect(artistNode.x - nodeSize / 2, artistNode.y - nodeSize / 2, nodeSize, nodeSize);
-                    ctx.fillStyle = "white";
-                    ctx.fill();
-
-                    const img = new Image(nodeSize, nodeSize);
-                    img.src = artistNode.artist.imageURL;
-                    ctx.drawImage(img, artistNode.x - nodeSize / 2, artistNode.y - nodeSize / 2, nodeSize, nodeSize);
-                }}
-                nodePointerAreaPaint={(node, color, ctx) => {
-                    if (!node.x || !node.y) return;
-
-                    ctx.fillStyle = color;
-                    ctx.fillRect(node.x - nodeSize / 2, node.y - nodeSize / 2, nodeSize, nodeSize);
-                }}
-                nodeRelSize={nodeSize}
-                onNodeClick={handleClick}
-                onNodeHover={handleHover}
-                linkDirectionalParticles={4}
-                linkDirectionalParticleWidth={(link) => (highlightedLinks.current.includes(link as ArtistLinkObject) ? 2 : 0)}
-                linkDirectionalParticleSpeed={0}
-            />
-        </>
-    );
+  return (
+    <div style={{ width: "100%", height: "100%" }}>
+      <ForceGraph
+        nodes={nodes}
+        links={links}
+        onNodesChange={setNodes}
+        onLinksChange={setLinks}
+        onNodeClick={handleNodeClick}
+        hideLabels={true}
+        nodeSize={20}
+      />
+    </div>
+  );
 };

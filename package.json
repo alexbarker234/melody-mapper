@@ -6,25 +6,31 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.4.2",
-    "@fortawesome/free-solid-svg-icons": "^6.4.2",
-    "@fortawesome/react-fontawesome": "^0.2.0",
-    "@types/node": "20.9.1",
-    "@types/react": "18.2.37",
-    "@types/react-dom": "18.2.15",
+    "d3": "^7.9.0",
     "d3-force": "^3.0.0",
-    "lodash": "^4.17.21",
-    "next": "14.0.3",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "next": "15.3.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-force-graph-2d": "^1.25.2",
-    "sass": "^1.69.5",
+    "react-icons": "^5.5.0",
     "typescript": "5.2.2"
   },
   "devDependencies": {
-    "@types/d3-force": "^3.0.9"
+    "@types/d3": "^7.4.3",
+    "@types/d3-force": "^3.0.9",
+    "@types/node": "20.9.1",
+    "@types/react": "19.1.8",
+    "@types/react-dom": "19.1.6",
+    "prettier": "^3.6.0",
+    "sass": "^1.89.2"
+  },
+  "overrides": {
+    "@types/react": "19.1.8",
+    "@types/react-dom": "19.1.6"
   }
 }
