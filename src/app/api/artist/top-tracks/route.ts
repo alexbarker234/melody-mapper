@@ -9,15 +9,9 @@ export async function GET(req: Request) {
     const artistId = searchParams.get("id");
     if (!artistId) return NextResponse.json({ error: "no id supplied" }, { status: 400 });
 
-    const spotifyResponse = await getArtistTopTracks(artistId);
-    if (spotifyResponse.status >= 400) {
-      console.log(spotifyResponse);
-      const response: ErrorResponse = { error: "request error" };
-      return NextResponse.json(response, { status: spotifyResponse.status });
-    }
-    const spotifyTracks: SpotifyTrackResponse = await spotifyResponse.json();
+    const spotifyResponse: SpotifyTrackResponse = await getArtistTopTracks(artistId);
 
-    const response: Track[] = spotifyTracks.tracks.map((spotifyTrack) => {
+    const response: Track[] = spotifyResponse.tracks.map((spotifyTrack) => {
       const track: Track = {
         id: spotifyTrack.id,
         name: spotifyTrack.name,
